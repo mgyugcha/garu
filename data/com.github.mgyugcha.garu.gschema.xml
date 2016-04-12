@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema path="/com/github/mgyugcha/garu/" id="com.github.mgyugcha.garu">
+
+    <key type="b" name="dark-theme">
+      <default>false</default>
+      <summary>Dark mode for garu</summary>
+      <description></description>
+    </key>
+
+  </schema>
+</schemalist>

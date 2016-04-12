@@ -1,0 +1,13 @@
+# List of source files which contain translatable strings.
+
+src/garu.c
+src/garu-application.c
+src/garu-window.c
+src/garu-song-box.c
+src/garu-headerbar.c
+src/garu-player.c
+src/garu-player-bin.c
+src/garu-tagger.c
+src/garu-playlist.c
+src/garu-library.c
+src/garu-folder-browser.c

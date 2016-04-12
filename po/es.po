@@ -1,0 +1,38 @@
+# Spanish translations for garu-music package.
+# Copyright (C) 2016 Michael Yugcha
+# This file is distributed under the same license as the garu-music package.
+# Michael Yugcha <mgyugcha@gmail.com>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: garu-music 1\n"
+"Report-Msgid-Bugs-To: mgyugcha@gmail.com\n"
+"POT-Creation-Date: 2016-04-01 15:34-0500\n"
+"PO-Revision-Date: 2016-04-01 15:35-0500\n"
+"Last-Translator: Michael Yugcha <mgyugcha@gmail.com>\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/garu-library.c:118
+msgid "Folders"
+msgstr "Carpetas"
+
+#: src/garu-library.c:124
+msgid "Artist"
+msgstr "Artistas"
+
+#: src/garu-library.c:130
+msgid "Albums"
+msgstr "Albums"
+
+#: src/garu-library.c:136
+msgid "Generes"
+msgstr "Géneros"
+
+#: src/garu-library.c:142
+msgid "Radios"
+msgstr "Radios"
