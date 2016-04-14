@@ -17,7 +17,10 @@
  */
 
 #include <gst/gst.h>
+
+#include "garu-utils.h"
 #include "garu-player-bin.h"
+#include "garu-application.h"
 
 struct _GaruPlayerBin
 {
@@ -49,17 +52,17 @@ garu_player_bin_dispose (GObject *gobject)
 }
 
 static void
-garu_player_bin_init (GaruPlayerBin *self)
-{
-  garu_player_bin_init_playbin (self);
-}
-
-static void
 garu_player_bin_class_init (GaruPlayerBinClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = garu_player_bin_dispose;
+}
+
+static void
+garu_player_bin_init (GaruPlayerBin *self)
+{
+  garu_player_bin_init_playbin (self);
 }
 
 static void
@@ -101,9 +104,12 @@ garu_player_bin_init_playbin (GaruPlayerBin *self)
       g_object_set (self->playbin, "audio-sink", bin, NULL);
 
       g_object_set ( G_OBJECT(self->karaoke), "level", 0, NULL);
+      garu_player_bin_update_equalizer (self);
     }
   else
-    self->equalizer = self->karaoke = self->convert = self->sink = NULL;
+    {
+      self->equalizer = self->karaoke = self->convert = self->sink = NULL;
+    }
 
   // g_object_set ( G_OBJECT(self->playbin), "volume", 5.0, NULL);
   bus = gst_pipeline_get_bus (GST_PIPELINE (self->playbin));
@@ -191,4 +197,68 @@ garu_player_bin_get_duration (GaruPlayerBin *self)
   gint64 duration;
   gst_element_query_duration (self->playbin, GST_FORMAT_TIME, &duration);
   return duration;
+}
+
+void
+garu_player_bin_equalizer_disabled (GaruPlayerBin *self)
+{
+  g_object_set ( G_OBJECT(self->karaoke), "level", 0, NULL);
+  
+}
+
+GstElement *
+garu_player_bin_get_equalizer (GaruPlayerBin *self)
+{
+  return self->equalizer;
+}
+
+void
+garu_player_bin_disable_equalizer (GaruPlayerBin *self)
+{
+  gchar *band;
+  gint   i;
+
+  for (i = 0; i < G_N_ELEMENTS (eq_bands); i++)
+    {
+      band = g_strdup_printf ("band%d", i);
+      g_object_set (self->equalizer, band, 0.0, NULL);
+      g_free (band);
+    }
+}
+
+void
+garu_player_bin_update_equalizer (GaruPlayerBin *self)
+{
+  GaruApplication *app;
+  GSettings       *settings;
+  gint             preset, i;
+  gchar           *band, *settings_band;
+
+  app = GARU_APPLICATION (g_application_get_default ());
+  settings = garu_application_get_settings (app);
+  preset = g_settings_get_int (settings, "equalizer-preset");
+
+  if (!g_settings_get_boolean (settings, "equalizer-enabled"))
+    {
+      garu_player_bin_disable_equalizer (self);
+      return;
+    }
+
+  for (i = 0; i < G_N_ELEMENTS (eq_bands); i++)
+    {
+      band = g_strdup_printf ("band%d", i);
+      if (preset == G_N_ELEMENTS (eq_presets) - 1)
+        {
+          settings_band = g_strdup_printf ("eq-custom-band%d", i);
+          g_object_set (self->equalizer, band,
+                        g_settings_get_double (settings, settings_band), NULL);
+          g_free (settings_band);
+        }
+      else
+        {
+          g_object_set (self->equalizer, band,
+                        eq_presets_values[preset][i], NULL);
+        }
+      g_free (band);
+    }
 }

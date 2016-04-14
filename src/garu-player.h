@@ -28,11 +28,6 @@ G_BEGIN_DECLS
 #define GARU_TYPE_PLAYER (garu_player_get_type())
 G_DECLARE_FINAL_TYPE (GaruPlayer, garu_player, GARU, PLAYER, GObject);
 
-struct _GaruPlayerClass
-{
-  GObjectClass parent;
-};
-
 enum {
   GARU_PLAYER_PLAYING,
   GARU_PLAYER_PAUSED,
@@ -50,6 +45,10 @@ void        garu_player_set_volume       (GaruPlayer *self, gdouble value);
 gint64      garu_player_get_position     (GaruPlayer *self);
 gchar      *garu_player_get_position_str (GaruPlayer *self);
 GaruTagger *garu_player_get_tagger       (GaruPlayer *self);
+void        garu_player_equalizer_changed  (GaruPlayer *self);
+void        garu_player_set_equalizer_enabled (GaruPlayer *self, gboolean enabled);
+gboolean    garu_player_get_equalizer_enabled (GaruPlayer *self);
+void        garu_player_update_equalizer (GaruPlayer *self);
 
 G_END_DECLS
 

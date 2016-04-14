@@ -81,7 +81,7 @@ garu_application_startup (GApplication *self)
   gtk_application_set_app_menu (GTK_APPLICATION (self), G_MENU_MODEL (menu));
 
   
-  /* Dark */
+  /* Dark Theme */
   GtkSettings *gtk_settings = gtk_settings_get_default ();
   g_settings_bind (GARU_APPLICATION (self)->settings, "dark-theme",
 		   gtk_settings, "gtk-application-prefer-dark-theme",

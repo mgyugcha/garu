@@ -26,11 +26,6 @@ G_BEGIN_DECLS
 #define GARU_TYPE_PLAYER_BIN (garu_player_bin_get_type ())
 G_DECLARE_FINAL_TYPE (GaruPlayerBin, garu_player_bin, GARU, PLAYER_BIN, GObject);
 
-struct _GaruPlayerBinClass
-{
-  GObjectClass parent;
-};
-
 GaruPlayerBin *garu_player_bin_new          (void);
 void           garu_player_bin_set_uri      (GaruPlayerBin *self, gchar *uri);
 void           garu_player_bin_play         (GaruPlayerBin *self);
@@ -40,6 +35,11 @@ void           garu_player_bin_set_volume   (GaruPlayerBin *self,
 					     gdouble value);
 gint64         garu_player_bin_get_position (GaruPlayerBin *self);
 gint64         garu_player_bin_get_duration (GaruPlayerBin *self);
+
+void           garu_player_bin_equalizer_disabled (GaruPlayerBin *self);
+GstElement    *garu_player_bin_get_equalizer (GaruPlayerBin *self);
+void garu_player_bin_disable_equalizer (GaruPlayerBin *self);
+void           garu_player_bin_update_equalizer (GaruPlayerBin *self);
 
 G_END_DECLS
 

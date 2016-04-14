@@ -4,9 +4,54 @@
 
     <key type="b" name="dark-theme">
       <default>false</default>
-      <summary>Dark mode for garu</summary>
+      <summary>Dark Theme</summary>
       <description></description>
     </key>
+
+    <!-- Effects -->
+
+    <!-- Equalizer -->
+    <key type="b" name="equalizer-enabled">
+      <default>false</default>
+      <summary>Equalizer enabled</summary>
+      <description></description>
+    </key>
+    <key type="i" name="equalizer-preset">
+      <default>0</default>
+      <summary>Equalizer preset</summary>
+      <description>Default equalizer preset</description>
+    </key>
+    <key type="d" name="eq-custom-band0">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band1">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band2">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band3">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band4">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band5">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band6">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band7">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band8">
+      <default>0.0</default>
+    </key>
+    <key type="d" name="eq-custom-band9">
+      <default>0.0</default>
+    </key>
+
 
   </schema>
 </schemalist>
