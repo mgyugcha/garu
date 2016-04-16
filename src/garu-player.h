@@ -35,20 +35,25 @@ enum {
   GARU_PLAYER_CROSSFADING
 };
 
-GaruPlayer *garu_player_new              (void);
-void        garu_player_set_track        (GaruPlayer *self, gchar *uri);
-void        garu_player_play             (GaruPlayer *self);
-void        garu_player_pause            (GaruPlayer *self);
-void        garu_player_stop             (GaruPlayer *self);
-gint        garu_player_get_status       (GaruPlayer *self);
-void        garu_player_set_volume       (GaruPlayer *self, gdouble value);
-gint64      garu_player_get_position     (GaruPlayer *self);
-gchar      *garu_player_get_position_str (GaruPlayer *self);
-GaruTagger *garu_player_get_tagger       (GaruPlayer *self);
-void        garu_player_equalizer_changed  (GaruPlayer *self);
-void        garu_player_set_equalizer_enabled (GaruPlayer *self, gboolean enabled);
+GaruPlayer *garu_player_new                   (void);
+void        garu_player_set_track             (GaruPlayer *self, gchar *uri);
+void        garu_player_play                  (GaruPlayer *self);
+void        garu_player_pause                 (GaruPlayer *self);
+void        garu_player_stop                  (GaruPlayer *self);
+gint        garu_player_get_status            (GaruPlayer *self);
+gint64      garu_player_get_position          (GaruPlayer *self);
+gchar      *garu_player_get_position_str      (GaruPlayer *self);
+GaruTagger *garu_player_get_tagger            (GaruPlayer *self);
+void        garu_player_equalizer_changed     (GaruPlayer *self);
+void        garu_player_update_equalizer      (GaruPlayer *self);
+
+/* Properties */
+void        garu_player_set_equalizer_enabled (GaruPlayer *self,
+                                               gboolean    enabled);
 gboolean    garu_player_get_equalizer_enabled (GaruPlayer *self);
-void        garu_player_update_equalizer (GaruPlayer *self);
+void        garu_player_set_volume            (GaruPlayer *self,
+                                               gdouble     volume);
+gdouble     garu_player_get_volume            (GaruPlayer *self);
 
 G_END_DECLS
 

@@ -35,8 +35,6 @@ struct _GaruPlayer
   gint           crossfade_n_times;
   gdouble        volume_crossfade;
   gboolean       crossfade;
-
-  gdouble        volume;
   gint           status;
 
   /* Plates */
@@ -48,6 +46,8 @@ struct _GaruPlayer
 
   /* Properties */
   gboolean       equalizer;
+  gdouble        volume;
+
 };
 
 G_DEFINE_TYPE (GaruPlayer, garu_player, G_TYPE_OBJECT);
@@ -62,8 +62,8 @@ enum {
 
 enum {
   PROP_0,
+  PROP_VOLUME,
   PROP_EQUALIZER,
-  //PROP_KARAOKE,
   LAST_PROP
 };
 
@@ -71,9 +71,9 @@ static GParamSpec *properties [LAST_PROP];
 
 static guint signals[LAST_SIGNAL];
 
+static void garu_player_load_settings (GaruPlayer *self);
 static void garu_player_do_crossfade (GaruPlayer *self);
 static gboolean garu_player_crossfade (GaruPlayer *self);
-static void garu_player_load_settings (GaruPlayer *self);
 
 static void
 garu_player_get_property (GObject    *object,
@@ -85,6 +85,9 @@ garu_player_get_property (GObject    *object,
 
   switch (property_id)
     {
+    case PROP_VOLUME:
+      g_value_set_double (value, garu_player_get_volume (self));
+      break;
     case PROP_EQUALIZER:
       g_value_set_boolean (value, garu_player_get_equalizer_enabled (self));
       break;
@@ -101,6 +104,9 @@ garu_player_set_property (GObject      *object,
 
   switch (property_id)
     {
+    case PROP_VOLUME:
+      garu_player_set_volume (self, g_value_get_double (value));
+      break;
     case PROP_EQUALIZER:
       garu_player_set_equalizer_enabled (self, g_value_get_boolean (value));
       break;
@@ -116,6 +122,12 @@ garu_player_class_init (GaruPlayerClass *klass)
   object_class->set_property = garu_player_set_property;
 
   /* Properties */
+  properties [PROP_VOLUME] =
+    g_param_spec_double ("volume",
+			 "Volume",
+			 "Volume for the player",
+			 0.0, 1.0, 1.0,
+			 G_PARAM_READWRITE);
   properties [PROP_EQUALIZER] =
     g_param_spec_boolean ("equalizer",
                           "Equalizer",
@@ -147,17 +159,31 @@ static void
 garu_player_init (GaruPlayer *self)
 {
   self->plate1 = garu_player_bin_new ();
+  garu_player_bin_set_volume (self->plate1, self->volume);
   self->plate2 = NULL;
   self->crossfade = TRUE;
   self->crossfade_id = 0;
   self->crossfade_time = 2000;
   self->crossfade_n_times = 0;
-  self->volume = 1.0;
-  garu_player_bin_set_volume (self->plate1, self->volume);
   self->status = GARU_PLAYER_STOPPED;
   self->tagger = garu_tagger_new ();
 
   garu_player_load_settings (self);
+}
+
+static void
+garu_player_load_settings (GaruPlayer *self)
+{
+  GSettings       *settings;
+  GaruApplication *app;
+
+  app = GARU_APPLICATION (g_application_get_default ());
+  settings = garu_application_get_settings (app);
+
+  g_settings_bind (settings, "equalizer-enabled", self, "equalizer",
+		   G_SETTINGS_BIND_GET);
+  g_settings_bind (settings, "volume", self, "volume",
+		   G_SETTINGS_BIND_GET);
 }
 
 static void
@@ -204,19 +230,6 @@ garu_player_crossfade (GaruPlayer *self)
   return response;
 }
 
-static void
-garu_player_load_settings (GaruPlayer *self)
-{
-  GSettings       *settings;
-  GaruApplication *app;
-
-  app = GARU_APPLICATION (g_application_get_default ());
-  settings = garu_application_get_settings (app);
-
-  g_settings_bind (settings, "equalizer-enabled",
-		   self, "equalizer", G_SETTINGS_BIND_GET);
-}
-
 GaruPlayer *
 garu_player_new (void)
 {
@@ -244,7 +257,6 @@ garu_player_set_track (GaruPlayer *self, gchar *uri)
       /* free memory */
       g_source_remove (self->crossfade_id);
       g_object_unref (self->plate2);
-
       garu_player_stop (self);
       garu_player_set_volume (self, self->volume);
       garu_player_set_track (self, uri);
@@ -255,12 +267,15 @@ garu_player_set_track (GaruPlayer *self, gchar *uri)
 void
 garu_player_play (GaruPlayer *self)
 {
-  if (self->status == GARU_PLAYER_PLAYING)
-    garu_player_do_crossfade (self);
-  else
+  switch (self->status)
     {
+    case GARU_PLAYER_PLAYING:
+      garu_player_do_crossfade (self);
+      break;
+    default:
       self->status = GARU_PLAYER_PLAYING;
       garu_player_bin_play (self->plate1);
+      break;
     }
   g_signal_emit (self, signals[PLAYING], 0);
 }
@@ -307,13 +322,6 @@ garu_player_stop (GaruPlayer *self)
   self->status = GARU_PLAYER_STOPPED;
 }
 
-void
-garu_player_set_volume (GaruPlayer *self, gdouble value)
-{
-  self->volume_crossfade = self->volume = value;
-  garu_player_bin_set_volume (self->plate1, value);
-}
-
 gint
 garu_player_get_status (GaruPlayer *self)
 {
@@ -354,6 +362,19 @@ garu_player_get_tagger (GaruPlayer *self)
 }
 
 void
+garu_player_update_equalizer (GaruPlayer *self)
+{
+  switch (self->status)
+    {
+    case GARU_PLAYER_CROSSFADING:
+      garu_player_bin_update_equalizer (self->plate2);
+    default:
+      garu_player_bin_update_equalizer (self->plate1);
+      break;
+    }
+}
+
+void
 garu_player_set_equalizer_enabled (GaruPlayer *self, gboolean enabled)
 {
   self->equalizer = enabled;
@@ -367,14 +388,14 @@ garu_player_get_equalizer_enabled (GaruPlayer *self)
 }
 
 void
-garu_player_update_equalizer (GaruPlayer *self)
+garu_player_set_volume (GaruPlayer *self, gdouble volume)
 {
-  switch (self->status)
-    {
-    case GARU_PLAYER_CROSSFADING:
-      garu_player_bin_update_equalizer (self->plate2);
-    default:
-      garu_player_bin_update_equalizer (self->plate1);
-      break;
-    }
+  self->volume_crossfade = self->volume = volume;
+  garu_player_bin_set_volume (self->plate1, volume);
+}
+
+gdouble
+garu_player_get_volume (GaruPlayer *self)
+{
+  return self->volume;
 }

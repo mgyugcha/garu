@@ -147,8 +147,13 @@ garu_headerbar_init_control_buttons (GaruHeaderbar *self)
 static void
 garu_headerbar_init_playback_buttons (GaruHeaderbar *self)
 {
+  GSettings       *settings;
+  GaruApplication *app;
   GtkWidget       *box, *button;
   GtkStyleContext *context;
+
+  app = GARU_APPLICATION (g_application_get_default ());
+  settings = garu_application_get_settings (app);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
   context = gtk_widget_get_style_context (box);
@@ -164,10 +169,10 @@ garu_headerbar_init_playback_buttons (GaruHeaderbar *self)
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
   gtk_widget_show (button);
   /* volume */
-  button = gtk_volume_button_new();
+  button = gtk_volume_button_new ();
   gtk_scale_button_set_value (GTK_SCALE_BUTTON (button), 1);
-  g_signal_connect (button, "value-changed",
-                    G_CALLBACK (garu_headerbar_volume_change), NULL);
+  g_settings_bind (settings, "volume", button, "value",
+		   G_SETTINGS_BIND_DEFAULT);
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
   gtk_widget_show (button);
 
@@ -312,16 +317,6 @@ garu_headerbar_next_button_clicked (GtkButton *button, GaruHeaderbar *self)
   garu_player_play (player);
 
   g_free (file);
-}
-
-static void
-garu_headerbar_volume_change (GtkScaleButton *button, gdouble value)
-{
-  GaruApplication *app;
-  GaruPlayer      *player;
-  app = GARU_APPLICATION (g_application_get_default ());
-  player = garu_application_get_player (app);
-  garu_player_set_volume (player, value);
 }
 
 static void
