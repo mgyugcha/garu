@@ -14,6 +14,7 @@ po/Makefile.in.in
 *.template
 po/POTFILES
 po/stamp-po
+*.gmo
 
 #### Autotools
 

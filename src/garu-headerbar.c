@@ -259,18 +259,18 @@ garu_headerbar_play_button_clicked (GtkButton *button, GaruHeaderbar *self)
 
   switch (garu_player_get_status (player))
     {
-    case GARU_PLAYER_STOPPED:
+    case GARU_PLAYER_STATUS_STOPPED:
       file = garu_playlist_get_track (playlist);
       if (file == NULL)
 	return;
       garu_player_set_track (player, g_filename_to_uri (file, NULL, NULL));
       gtk_widget_set_sensitive (self->stop_button, TRUE);
       g_free (file);
-    case GARU_PLAYER_PAUSED:
+    case GARU_PLAYER_STATUS_PAUSED:
       garu_player_play (player);
       break;
-    case GARU_PLAYER_PLAYING:
-    case GARU_PLAYER_CROSSFADING:
+    case GARU_PLAYER_STATUS_PLAYING:
+    case GARU_PLAYER_STATUS_CROSSFADING:
       garu_player_pause (player);
       garu_headerbar_set_button_image (button,
 				       "media-playback-start-symbolic");

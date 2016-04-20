@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: garu-music 1\n"
 "Report-Msgid-Bugs-To: mgyugcha@gmail.com\n"
-"POT-Creation-Date: 2016-04-01 15:34-0500\n"
+"POT-Creation-Date: 2016-04-19 11:56-0500\n"
 "PO-Revision-Date: 2016-04-01 15:35-0500\n"
 "Last-Translator: Michael Yugcha <mgyugcha@gmail.com>\n"
 "Language-Team: Spanish\n"
@@ -17,22 +17,160 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/garu-library.c:118
-msgid "Folders"
-msgstr "Carpetas"
+#: src/garu-application.c:169
+msgid "Lateral panel"
+msgstr ""
 
-#: src/garu-library.c:124
+#: src/garu-application.c:170
+msgid "Status bar"
+msgstr ""
+
+#: src/garu-application.c:171 src/garu-effects.c:100
+msgid "Effects"
+msgstr ""
+
+#: src/garu-application.c:172
+msgid "Preferences"
+msgstr ""
+
+#: src/garu-application.c:173
+msgid "About"
+msgstr ""
+
+#: src/garu-application.c:174
+msgid "Quit"
+msgstr ""
+
+#: src/garu-playlist.c:168
+msgid "Track"
+msgstr ""
+
+#: src/garu-playlist.c:177
+msgid "Title"
+msgstr ""
+
+#: src/garu-playlist.c:187 src/garu-library.c:129
 msgid "Artist"
 msgstr "Artistas"
 
-#: src/garu-library.c:130
+#: src/garu-playlist.c:197
+#, fuzzy
+msgid "Album"
+msgstr "Albums"
+
+#: src/garu-playlist.c:207
+#, fuzzy
+msgid "Genere"
+msgstr "Géneros"
+
+#: src/garu-playlist.c:217
+msgid "Length"
+msgstr ""
+
+#: src/garu-playlist.c:227
+msgid "File"
+msgstr ""
+
+#: src/garu-playlist.c:237
+msgid "Year"
+msgstr ""
+
+#: src/garu-playlist.c:247
+msgid "Mimetype"
+msgstr ""
+
+#: src/garu-library.c:123
+msgid "Folders"
+msgstr "Carpetas"
+
+#: src/garu-library.c:135
 msgid "Albums"
 msgstr "Albums"
 
-#: src/garu-library.c:136
+#: src/garu-library.c:141
 msgid "Generes"
 msgstr "Géneros"
 
-#: src/garu-library.c:142
+#: src/garu-library.c:147
 msgid "Radios"
 msgstr "Radios"
+
+#: src/garu-utils.h:39
+msgid "Normal"
+msgstr ""
+
+#: src/garu-utils.h:40
+msgid "Ballad"
+msgstr ""
+
+#: src/garu-utils.h:41
+msgid "Classic"
+msgstr ""
+
+#: src/garu-utils.h:42
+msgid "Club"
+msgstr ""
+
+#: src/garu-utils.h:43
+msgid "Dance"
+msgstr ""
+
+#: src/garu-utils.h:44
+msgid "Pop"
+msgstr ""
+
+#: src/garu-utils.h:45
+msgid "Reggae"
+msgstr ""
+
+#: src/garu-utils.h:46
+msgid "Rock"
+msgstr ""
+
+#: src/garu-utils.h:47
+msgid "Ska"
+msgstr ""
+
+#: src/garu-utils.h:48
+msgid "Soft"
+msgstr ""
+
+#: src/garu-utils.h:49
+msgid "Party"
+msgstr ""
+
+#: src/garu-utils.h:50
+msgid "More Bass"
+msgstr ""
+
+#: src/garu-utils.h:51
+msgid "More Bass and Treble"
+msgstr ""
+
+#: src/garu-utils.h:52
+msgid "Custom"
+msgstr ""
+
+#: src/garu-effects.c:139
+msgid "Equalizer"
+msgstr ""
+
+#: src/garu-effects.c:145
+msgid "Crossfade"
+msgstr ""
+
+#: src/garu-effects.c:193 src/garu-effects.c:350
+msgid "Enabled"
+msgstr ""
+
+#: src/garu-effects.c:207
+msgid "Presets"
+msgstr ""
+
+#: src/garu-effects.c:372
+msgid "Mix when the track is changed"
+msgstr ""
+
+#: src/garu-effects.c:377
+msgid "Mix before the end of the track"
+msgstr ""

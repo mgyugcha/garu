@@ -521,10 +521,10 @@ garu_playlist_get_next_track (GaruPlaylist *self)
   if (!gtk_tree_model_iter_next (model, &iter))
     return NULL;
 
-  if (self->path == NULL)
-    g_print ("Es null");
-  else
-    g_print ("No es null");
+  /* if (self->path == NULL) */
+  /*   g_print ("Es null"); */
+  /* else */
+  /*   g_print ("No es null"); */
 
   gtk_tree_model_get (model, &iter, COLUMN_FILE, &file, -1);
   gtk_list_store_set (GTK_LIST_STORE (model), &iter,

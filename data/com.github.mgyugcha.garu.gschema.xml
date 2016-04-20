@@ -55,6 +55,23 @@
       <default>0.0</default>
     </key>
 
+    <!-- Crossfade -->
+    <key type="b" name="crossfade-enabled">
+      <default>true</default>
+      <summary>Crossfade enabled</summary>
+    </key>
+    <key type="i" name="crossfade-time">
+      <default>3</default>
+      <summary>Time for the transition</summary>
+    </key>
+    <key type="b" name="crossfade-change-track">
+      <default>true</default>
+      <summary>Crossfade when the user change the track</summary>
+    </key>
+    <key type="b" name="crossfade-track-ends">
+      <default>true</default>
+      <summary>Crossfade before the track ends</summary>
+    </key>
 
   </schema>
 </schemalist>

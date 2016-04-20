@@ -25,14 +25,14 @@
 
 G_BEGIN_DECLS
 
-#define GARU_TYPE_PLAYER (garu_player_get_type())
+#define GARU_TYPE_PLAYER (garu_player_get_type ())
 G_DECLARE_FINAL_TYPE (GaruPlayer, garu_player, GARU, PLAYER, GObject);
 
 enum {
-  GARU_PLAYER_PLAYING,
-  GARU_PLAYER_PAUSED,
-  GARU_PLAYER_STOPPED,
-  GARU_PLAYER_CROSSFADING
+  GARU_PLAYER_STATUS_PLAYING,
+  GARU_PLAYER_STATUS_PAUSED,
+  GARU_PLAYER_STATUS_STOPPED,
+  GARU_PLAYER_STATUS_CROSSFADING
 };
 
 GaruPlayer *garu_player_new                   (void);

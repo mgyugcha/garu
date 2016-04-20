@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "garu-application.h"
 #include "garu-utils.h"
 
 gchar *
@@ -88,4 +89,22 @@ gint
 garu_utils_g_strcmp (GString *a, GString *b)
 {
   return g_strcmp0 (a->str, b->str);
+}
+
+gchar *
+garu_utils_text_bold (gchar *text)
+{
+  return g_markup_printf_escaped ("<b>%s</b>", text);
+}
+
+GSettings *
+garu_utils_get_settings (void)
+{
+  GSettings       *settings;
+  GaruApplication *app;
+
+  app = GARU_APPLICATION (g_application_get_default ());
+  settings = garu_application_get_settings (app);
+
+  return settings;
 }

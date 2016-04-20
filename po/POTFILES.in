@@ -11,3 +11,5 @@ src/garu-tagger.c
 src/garu-playlist.c
 src/garu-library.c
 src/garu-folder-browser.c
+src/garu-utils.h
+src/garu-effects.c

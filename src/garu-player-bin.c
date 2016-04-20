@@ -42,13 +42,14 @@ static gboolean bus_call                     (GstBus *bus,
                                               gpointer data);
 
 static void
-garu_player_bin_dispose (GObject *gobject)
+garu_player_bin_finalize (GObject *gobject)
 {
   GaruPlayerBin *self;
   self = GARU_PLAYER_BIN (gobject);
+  g_print ("Finalize player bin\n");
   gst_element_set_state (self->playbin, GST_STATE_NULL);
   gst_object_unref (GST_OBJECT (self->playbin));
-  G_OBJECT_CLASS (garu_player_bin_parent_class)->dispose (gobject);
+  G_OBJECT_CLASS (garu_player_bin_parent_class)->finalize (gobject);
 }
 
 static void
@@ -56,7 +57,7 @@ garu_player_bin_class_init (GaruPlayerBinClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->dispose = garu_player_bin_dispose;
+  object_class->finalize = garu_player_bin_finalize;
 }
 
 static void
@@ -111,7 +112,7 @@ garu_player_bin_init_playbin (GaruPlayerBin *self)
       self->equalizer = self->karaoke = self->convert = self->sink = NULL;
     }
 
-  // g_object_set ( G_OBJECT(self->playbin), "volume", 5.0, NULL);
+  //g_object_set ( G_OBJECT(self->playbin), "volume", 1.0, NULL);
   bus = gst_pipeline_get_bus (GST_PIPELINE (self->playbin));
   gst_bus_add_watch (bus, bus_call, NULL);
   gst_object_unref (bus);

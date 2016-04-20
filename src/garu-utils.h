@@ -48,7 +48,6 @@ static const gchar *eq_presets[] =
     N_("Soft"),
     N_("Party"),
     N_("More Bass"),
-    N_("More Bass and Treble"),
     N_("Custom")
   };
 
@@ -66,15 +65,16 @@ eq_presets_values[G_N_ELEMENTS (eq_presets)][G_N_ELEMENTS (eq_bands)] =
     { -2.50, -5.00, -4.00,  0.00,  4.00,  5.50,  8.00,  9.00, 11.00,  9.00 }, // Ska
     {  5.00,  1.50,  0.00, -2.50,  0.00,  4.00,  8.00,  9.00, 11.00, 12.00 }, // Soft
     {  7.00,  7.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  7.00,  7.00 }, // Party
-    { -8.00, 10.00, 10.00,  5.50,  1.50, -4.00, -8.00,-10.00,-11.00,-11.00 }, // More Bass
-    {  8.00,  5.50,  0.00, -7.00, -5.00,  1.50,  8.00, 11.20, 12.00, 12.00 }, // More Bass and Treble
+    { -8.00, 10.00, 10.00,  5.50,  1.50, -4.00, -8.00,-10.00,-11.00,-11.00 }  // More Bass
   };
 
 
-gchar   *garu_utils_convert_seconds (gint length);
-gboolean garu_utils_is_audio        (gchar *path);
-gboolean garu_utils_is_hidden       (gchar *path);
-void     garu_utils_free_string     (GString *string);
-gint     garu_utils_g_strcmp        (GString *a, GString *b);
+gchar     *garu_utils_convert_seconds (gint     length);
+gboolean   garu_utils_is_audio        (gchar   *path);
+gboolean   garu_utils_is_hidden       (gchar   *path);
+void       garu_utils_free_string     (GString *string);
+gint       garu_utils_g_strcmp        (GString *a, GString *b);
+gchar     *garu_utils_text_bold       (gchar   *text);
+GSettings *garu_utils_get_settings    (void);
 
 #endif // __GARU_UTILS_H__
