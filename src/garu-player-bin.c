@@ -71,7 +71,7 @@ garu_player_bin_init_playbin (GaruPlayerBin *self)
 {
   GstBus *bus;
 
-  self->playbin = gst_element_factory_make ("playbin", "play");
+  self->playbin = gst_element_factory_make ("playbin", "playbin");
   self->equalizer = gst_element_factory_make ("equalizer-10bands", "equalizer");
   self->convert = gst_element_factory_make ("audioconvert", "convert");
   self->karaoke = gst_element_factory_make ("audiokaraoke", "karaoke");
@@ -182,6 +182,17 @@ void
 garu_player_bin_set_volume (GaruPlayerBin *self, gdouble value)
 {
   g_object_set ( G_OBJECT(self->playbin), "volume", value, NULL);
+}
+
+void
+garu_player_bin_set_position (GaruPlayerBin *self, gdouble fraction)
+{
+  gint64 position;
+  position = GST_TIME_AS_NSECONDS (garu_player_bin_get_duration(self));
+  gst_element_seek (self->playbin, 1.0, GST_FORMAT_TIME,
+                    GST_SEEK_FLAG_FLUSH,
+                    GST_SEEK_TYPE_SET, position * fraction,
+                    GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE);
 }
 
 gint64

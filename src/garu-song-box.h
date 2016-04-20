@@ -23,24 +23,20 @@
 
 G_BEGIN_DECLS
 
-#define GARU_TYPE_SONG_BOX (garu_song_box_get_type())
+#define GARU_TYPE_SONG_BOX (garu_song_box_get_type ())
 G_DECLARE_FINAL_TYPE (GaruSongBox, garu_song_box, GARU, SONG_BOX, GtkBox);
-
-struct _GaruSongBoxClass
-{
-  GtkBoxClass parent;
-};
 
 GtkWidget *garu_song_box_new                       (void);
 void       garu_song_box_progress_bar_set_fraction (GaruSongBox *self,
-                                                    gdouble fraction);
+                                                    gdouble      fraction);
 double     garu_song_box_progress_bar_get_fraction (GaruSongBox *self);
 void       garu_song_box_set_position              (GaruSongBox *self,
-                                                    gchar *position);
+                                                    gint         position);
 void       garu_song_box_set_length                (GaruSongBox *self,
-                                                    gchar *length);
-void       garu_song_box_set_label_title           (GaruSongBox *self,
-                                                    gchar *title);
+                                                    gint         length);
+void       garu_song_box_set_title                 (GaruSongBox *self,
+                                                    gchar       *title,
+						    gchar       *artist);
 void       garu_song_box_default_title             (GaruSongBox *self);
 
 G_END_DECLS

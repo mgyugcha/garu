@@ -20,17 +20,11 @@
 #define __GARU_HEADERBAR_H__
 
 #include <gtk/gtk.h>
-#include "garu-song-box.h"
 
 G_BEGIN_DECLS
 
 #define GARU_TYPE_HEADERBAR (garu_headerbar_get_type ())
 G_DECLARE_FINAL_TYPE (GaruHeaderbar, garu_headerbar, GARU, HEADERBAR, GtkHeaderBar);
-
-struct _GaruHeaderbarClass
-{
-  GtkHeaderBarClass parent;
-};
 
 GtkWidget *garu_headerbar_new (void);
 

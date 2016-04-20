@@ -273,7 +273,6 @@ garu_player_unref_plates (GaruPlayer *self)
   g_object_unref (self->plate1);
   self->plate1 = g_object_ref (self->plate2);
   g_object_unref (self->plate2);
-  self->plate2 = NULL;
 }
 
 static void
@@ -396,6 +395,20 @@ gint
 garu_player_get_status (GaruPlayer *self)
 {
   return self->status;
+}
+
+void
+garu_player_set_position (GaruPlayer *self, gdouble fraction)
+{
+  switch (self->status)
+    {
+    case GARU_PLAYER_STATUS_CROSSFADING:
+      garu_player_bin_set_position (self->plate2, fraction);
+      break;
+    default:
+      garu_player_bin_set_position (self->plate1, fraction);
+      break;
+    }
 }
 
 gint64

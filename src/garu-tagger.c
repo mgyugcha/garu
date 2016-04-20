@@ -129,21 +129,42 @@ gchar *
 garu_tagger_get_artist (GaruTagger *self)
 {
   g_return_val_if_fail (self->tag, NULL);
-  return taglib_tag_artist (self->tag);
+  gchar *artist;
+  artist = taglib_tag_artist (self->tag);
+  if (g_strcmp0 (artist, "") == 0)
+    {
+      g_free (artist);
+      artist = NULL;
+    }
+  return artist;
 }
 
 gchar *
 garu_tagger_get_album (GaruTagger *self)
 {
   g_return_val_if_fail (self->tag, NULL);
-  return taglib_tag_album (self->tag);
+  gchar *album;
+  album = taglib_tag_album (self->tag);
+  if (g_strcmp0 (album, "") == 0)
+    {
+      g_free (album);
+      album = NULL;
+    }
+  return album;
 }
 
 gchar *
 garu_tagger_get_genre (GaruTagger *self)
 {
   g_return_val_if_fail (self->tag, NULL);
-  return taglib_tag_genre (self->tag);
+  gchar *genre;
+  genre = taglib_tag_genre (self->tag);
+  if (g_strcmp0 (genre, "") == 0)
+    {
+      g_free (genre);
+      genre = NULL;
+    }
+  return genre;
 }
 
 const gchar *

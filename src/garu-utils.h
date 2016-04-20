@@ -21,6 +21,7 @@
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
+#include "garu-player.h"
 
 /* CONSTANTS */
 #define GARU_CELL_PADDING 4
@@ -69,12 +70,13 @@ eq_presets_values[G_N_ELEMENTS (eq_presets)][G_N_ELEMENTS (eq_bands)] =
   };
 
 
-gchar     *garu_utils_convert_seconds (gint     length);
-gboolean   garu_utils_is_audio        (gchar   *path);
-gboolean   garu_utils_is_hidden       (gchar   *path);
-void       garu_utils_free_string     (GString *string);
-gint       garu_utils_g_strcmp        (GString *a, GString *b);
-gchar     *garu_utils_text_bold       (gchar   *text);
-GSettings *garu_utils_get_settings    (void);
+gchar      *garu_utils_convert_seconds (gint     length);
+gboolean    garu_utils_is_audio        (gchar   *path);
+gboolean    garu_utils_is_hidden       (gchar   *path);
+void        garu_utils_free_string     (GString *string);
+gint        garu_utils_g_strcmp        (GString *a, GString *b);
+gchar      *garu_utils_text_bold       (gchar   *text);
+GSettings  *garu_utils_get_settings    (void);
+GaruPlayer *garu_utils_get_player      (void);
 
 #endif // __GARU_UTILS_H__

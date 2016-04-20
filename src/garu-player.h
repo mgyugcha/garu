@@ -41,6 +41,8 @@ void        garu_player_play                  (GaruPlayer *self);
 void        garu_player_pause                 (GaruPlayer *self);
 void        garu_player_stop                  (GaruPlayer *self);
 gint        garu_player_get_status            (GaruPlayer *self);
+void        garu_player_set_position          (GaruPlayer *self,
+					       gdouble     fraction);
 gint64      garu_player_get_position          (GaruPlayer *self);
 gchar      *garu_player_get_position_str      (GaruPlayer *self);
 GaruTagger *garu_player_get_tagger            (GaruPlayer *self);

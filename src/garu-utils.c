@@ -102,9 +102,17 @@ garu_utils_get_settings (void)
 {
   GSettings       *settings;
   GaruApplication *app;
-
   app = GARU_APPLICATION (g_application_get_default ());
   settings = garu_application_get_settings (app);
-
   return settings;
+}
+
+GaruPlayer *
+garu_utils_get_player (void)
+{
+  GaruApplication *app;
+  GaruPlayer      *player;
+  app = GARU_APPLICATION (g_application_get_default ());
+  player = garu_application_get_player (app);
+  return player;
 }

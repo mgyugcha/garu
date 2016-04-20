@@ -17,6 +17,7 @@
  */
 
 #include "garu-song-box.h"
+#include "garu-utils.h"
 
 struct _GaruSongBox
 {
@@ -32,8 +33,11 @@ struct _GaruSongBox
 
 G_DEFINE_TYPE (GaruSongBox, garu_song_box, GTK_TYPE_BOX);
 
-static void       garu_song_box_init_elements              (GaruSongBox *self);
-static GtkWidget *garu_song_box_init_progress_box_elements (GaruSongBox *self);
+static void       garu_song_box_init_elements              (GaruSongBox    *self);
+static GtkWidget *garu_song_box_init_progress_box_elements (GaruSongBox    *self);
+static void       garu_song_box_progress_bar_event_seek    (GtkWidget      *widget,
+                                                            GdkEventButton *event,
+                                                            GaruSongBox    *self);
 
 static void
 garu_song_box_get_preferred_width (GtkWidget *widget,
@@ -58,7 +62,7 @@ static void
 garu_song_box_init (GaruSongBox *self)
 {
   gtk_orientable_set_orientation (GTK_ORIENTABLE (self),
-				  GTK_ORIENTATION_HORIZONTAL);
+                                  GTK_ORIENTATION_HORIZONTAL);
   gtk_widget_set_margin_start (GTK_WIDGET (self), 10);
   gtk_widget_set_margin_end (GTK_WIDGET (self), 10);
   garu_song_box_init_elements (self);
@@ -68,7 +72,8 @@ static void
 garu_song_box_init_elements (GaruSongBox *self)
 {
   //GdkPixbuf *pixbuf;
-  GtkWidget *hbox, *vbox, *progress_box, *label;//, *album_art;
+  GtkWidget *hbox, *vbox, *label;
+  //, *album_art;
 
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -104,7 +109,7 @@ garu_song_box_init_elements (GaruSongBox *self)
 static GtkWidget *
 garu_song_box_init_progress_box_elements (GaruSongBox *self)
 {
-  GtkWidget *progress_box, *progress_bar, *position, *length;
+  GtkWidget *progress_box, *progress_bar, *position, *length, *event_box;
 
   progress_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
   /* Position */
@@ -112,8 +117,12 @@ garu_song_box_init_progress_box_elements (GaruSongBox *self)
   gtk_box_pack_start (GTK_BOX (progress_box), position, FALSE, FALSE, 0);
   /* Progress bar */
   progress_bar = gtk_progress_bar_new ();
-  gtk_widget_set_valign (GTK_WIDGET(progress_bar), GTK_ALIGN_CENTER);
-  gtk_box_pack_start (GTK_BOX (progress_box), progress_bar, TRUE, TRUE, 0);     
+  event_box = gtk_event_box_new();
+  gtk_container_add (GTK_CONTAINER (event_box), progress_bar);
+  gtk_widget_set_valign (GTK_WIDGET(event_box), GTK_ALIGN_CENTER);
+  gtk_box_pack_start (GTK_BOX (progress_box), event_box, TRUE, TRUE, 0);
+  g_signal_connect (event_box, "button-press-event",
+                    G_CALLBACK (garu_song_box_progress_bar_event_seek), self);
   /* Length */
   length = gtk_label_new (NULL);
   gtk_box_pack_start (GTK_BOX (progress_box), length, FALSE, FALSE, 0);
@@ -122,6 +131,24 @@ garu_song_box_init_progress_box_elements (GaruSongBox *self)
   self->length = length;
   self->progress_bar = progress_bar;
   self->progress_box = progress_box;
+}
+
+static void
+garu_song_box_progress_bar_event_seek (GtkWidget      *widget,
+                                       GdkEventButton *event,
+                                       GaruSongBox    *self)
+{
+  gdouble        fraction;
+  GtkAllocation  allocation;
+  GaruPlayer    *player;
+  if (event->button != GDK_BUTTON_PRIMARY)
+    return;
+  player = garu_utils_get_player ();
+  gtk_widget_get_allocation (widget, &allocation);
+  fraction = (gdouble) event->x / allocation.width;
+  gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (self->progress_bar),
+                                 fraction);
+  garu_player_set_position (player, fraction);
 }
 
 GtkWidget *
@@ -134,7 +161,7 @@ void
 garu_song_box_progress_bar_set_fraction (GaruSongBox *self, gdouble fraction)
 {
   gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (self->progress_bar),
-				 fraction);
+                                 fraction);
 }
 
 double
@@ -144,28 +171,46 @@ garu_song_box_progress_bar_get_fraction (GaruSongBox *self)
 }
 
 void
-garu_song_box_set_position (GaruSongBox *self, gchar *position)
+garu_song_box_set_position (GaruSongBox *self, gint position)
 {
-  gtk_label_set_markup (GTK_LABEL (self->position), position);
+  gchar *str, *text;
+  str = garu_utils_convert_seconds (position);
+  text = g_markup_printf_escaped ("<small>%s</small>", str);
+  gtk_label_set_markup (GTK_LABEL (self->position), text);
+  g_free (str);
+  g_free (text);
 }
 
 void
-garu_song_box_set_length(GaruSongBox *self, gchar *length)
+garu_song_box_set_length(GaruSongBox *self, gint length)
 {
-  gtk_label_set_markup (GTK_LABEL (self->length), length);
+  gchar *str, *text;
+  str = garu_utils_convert_seconds (length);
+  text = g_markup_printf_escaped ("<small>%s</small>", str);
+  gtk_label_set_markup (GTK_LABEL (self->length), text);
+  g_free (str);
+  g_free (text);
 }
 
 void
-garu_song_box_set_label_title (GaruSongBox *self, gchar *title)
+garu_song_box_set_title (GaruSongBox *self, gchar *title, gchar *artist)
 {
-  gtk_label_set_markup (GTK_LABEL (self->label_title), title);
+  gchar *text;
+  if (artist == NULL)
+    text = g_markup_printf_escaped ("<b>%s</b>", title);
+  else
+    text = g_markup_printf_escaped ("<b>%s</b> - %s", title, artist);
+  gtk_label_set_markup (GTK_LABEL (self->label_title), text);
+  g_free (text);
 }
 
 void
 garu_song_box_default_title (GaruSongBox *self)
 {
-  gtk_label_set_markup (GTK_LABEL (self->label_title),
-                        "<b>Garu Music Player</b>");
+  gchar *garu;
+  garu = garu_utils_text_bold ("Garu Music Player");
+  gtk_label_set_markup (GTK_LABEL (self->label_title), garu);
+  g_free (garu);
   gtk_widget_hide (self->progress_box);
   
 }
