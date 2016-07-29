@@ -38,6 +38,7 @@ enum {
 GaruPlayer *garu_player_new                   (void);
 void        garu_player_set_track             (GaruPlayer *self, gchar *uri);
 void        garu_player_play                  (GaruPlayer *self);
+void        garu_player_continue              (GaruPlayer *self);
 void        garu_player_pause                 (GaruPlayer *self);
 void        garu_player_stop                  (GaruPlayer *self);
 gint        garu_player_get_status            (GaruPlayer *self);

@@ -28,8 +28,7 @@ struct _GaruPlaylist
 
   GtkWidget   *tree_view;
   GtkWidget   *level_bar;
-  GtkTreePath *path;
-  GtkTreeIter  iter;
+  GtkTreeIter *iter;
   
 };
 
@@ -61,6 +60,8 @@ static void          garu_playlist_add_track          (GaruPlaylist           *s
 						       GtkTreeViewDropPosition pos,
 						       gchar                  *uri);
 static void          garu_playlist_add_track_dnd      (GPtrArray *data);
+static gboolean      garu_playlist_get_iter           (GaruPlaylist *self,
+						       gint          type);
 
 /* Signals */
 static gboolean      garu_playlist_drag_drop          (GtkWidget      *widget,
@@ -79,22 +80,10 @@ static void          garu_playlist_drag_data_received (GtkWidget        *widget,
 						       GaruPlaylist     *self);
 
 static void
-garu_playlist_dispose (GObject *object)
-{
-  GaruPlaylist *self = GARU_PLAYLIST (object);
-  g_print ("DISPOSE\n");
-  //g_free (self->file);
-  //taglib_file_free (self->tfile);
-  G_OBJECT_CLASS (garu_playlist_parent_class)->dispose (object);
-}
-
-static void
 garu_playlist_finalize (GObject *object)
 {
   GaruPlaylist *self = GARU_PLAYLIST (object);
   g_print ("Finaliza\n");
-  //g_free (self->file);
-  //taglib_file_free (self->tfile);
   G_OBJECT_CLASS (garu_playlist_parent_class)->finalize (object);
 }
 
@@ -103,12 +92,12 @@ garu_playlist_class_init (GaruPlaylistClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   object_class->finalize = garu_playlist_finalize;
-  object_class->dispose = garu_playlist_dispose;
 }
 
 static void
 garu_playlist_init (GaruPlaylist *self)
 {
+  self->iter = NULL;
   garu_playlist_init_container (self);
   gtk_orientable_set_orientation (GTK_ORIENTABLE (self),
 				  GTK_ORIENTATION_VERTICAL);
@@ -417,6 +406,64 @@ garu_playlist_add_track (GaruPlaylist           *self,
   g_free (year);
   g_object_unref (tagger);
 }
+
+static gboolean
+garu_playlist_get_iter (GaruPlaylist *self, gint type)
+{
+  gboolean          response;
+  GtkTreeModel     *model;
+  GList            *list;
+  GtkTreeSelection *selection;
+  GtkTreeIter       iter_new, *iter;
+
+  model = gtk_tree_view_get_model (GTK_TREE_VIEW (self->tree_view));
+
+  switch (type)
+    {
+    case GARU_PLAYLIST_GET_START_TRACK:
+      response = garu_playlist_get_iter (self, GARU_PLAYLIST_GET_SELECTED);
+      if (!response)
+	response = garu_playlist_get_iter (self, GARU_PLAYLIST_GET_FIRST);
+      break;
+    case GARU_PLAYLIST_GET_SELECTED:
+      selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (self->tree_view));
+      list = gtk_tree_selection_get_selected_rows (selection, &model);
+      response = FALSE;
+      if (list != NULL)
+	{
+	  response = gtk_tree_model_get_iter (model, &iter_new, list->data);
+	  g_list_free_full (list, (GDestroyNotify) gtk_tree_path_free);
+	  self->iter = gtk_tree_iter_copy (&iter_new);
+	}
+      break;
+    case GARU_PLAYLIST_GET_FIRST:
+      response = gtk_tree_model_get_iter_first (model, &iter_new);
+      if (response)
+	self->iter = gtk_tree_iter_copy (&iter_new);
+      break;
+    case GARU_PLAYLIST_GET_PREV:
+    case GARU_PLAYLIST_GET_NEXT:
+      iter = gtk_tree_iter_copy (self->iter);
+      if (type == GARU_PLAYLIST_GET_NEXT)
+	response = gtk_tree_model_iter_next (model, self->iter);
+      else
+	response = gtk_tree_model_iter_previous (model, self->iter);
+      if (response)
+	{
+	  gtk_list_store_set (GTK_LIST_STORE (model), iter,
+			      COLUMN_STATUS, NULL, -1);
+	}
+      else
+	{
+	  gtk_tree_iter_free (self->iter);
+	  self->iter = gtk_tree_iter_copy (iter);
+	}
+      gtk_tree_iter_free (iter);
+      break;
+    }
+  return response;
+}
+
 static void
 garu_playlist_add_song (GaruPlaylist *self, GaruTagger *tagger)
 {
@@ -477,58 +524,29 @@ garu_playlist_new (void)
 }
 
 gchar *
-garu_playlist_get_track (GaruPlaylist *self)
+garu_playlist_get_track (GaruPlaylist *self, gint type)
 {
-  gchar            *file;
-  GList            *list;
-  GtkTreePath      *path;
-  GtkTreeModel     *model;
-  GtkTreeSelection *selection;
+  GtkTreeModel *model;
+  gboolean      response;
+  gchar        *file = NULL;
 
   model = gtk_tree_view_get_model (GTK_TREE_VIEW (self->tree_view));
 
-  /* If the playlist is empty */
-  if (!gtk_tree_model_get_iter_first (model, &self->iter))
-    return NULL;
-    
-  selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (self->tree_view));
-  list = gtk_tree_selection_get_selected_rows (selection, &model);
-
-  if (list != NULL)
-      gtk_tree_model_get_iter (model, &self->iter, list->data);
-
-  gtk_tree_model_get (model, &self->iter, COLUMN_FILE, &file, -1);
-  gtk_list_store_set (GTK_LIST_STORE (model), &self->iter,
-		      COLUMN_STATUS, "media-playback-start-symbolic", -1);
-  self->path = gtk_tree_model_get_path (model, &self->iter);
-
-  g_list_free_full (list, (GDestroyNotify) gtk_tree_path_free);
+  if (garu_playlist_get_iter (self, type))
+    {
+      gtk_tree_model_get (model, self->iter, COLUMN_FILE, &file, -1);
+      gtk_list_store_set (GTK_LIST_STORE (model), self->iter,
+			  COLUMN_STATUS, "media-playback-start-symbolic", -1);
+    }
   return file;
 }
 
-gchar *
-garu_playlist_get_next_track (GaruPlaylist *self)
+void
+garu_playlist_free (GaruPlaylist *self)
 {
-  GtkTreeIter iter;
-  gchar *file;
-  GtkTreeModel     *model;
-
+  GtkTreeModel *model;
   model = gtk_tree_view_get_model (GTK_TREE_VIEW (self->tree_view));
-
-  gtk_tree_model_get_iter (model, &iter, self->path);
-  gtk_list_store_set (GTK_LIST_STORE (model), &iter, COLUMN_STATUS, NULL, -1);
-
-  if (!gtk_tree_model_iter_next (model, &iter))
-    return NULL;
-
-  /* if (self->path == NULL) */
-  /*   g_print ("Es null"); */
-  /* else */
-  /*   g_print ("No es null"); */
-
-  gtk_tree_model_get (model, &iter, COLUMN_FILE, &file, -1);
-  gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-		      COLUMN_STATUS, "media-playback-start-symbolic", -1);
-  self->path = gtk_tree_model_get_path (model, &iter);
-  return file;
+  gtk_list_store_set (GTK_LIST_STORE (model), self->iter,
+		      COLUMN_STATUS, NULL, -1);
+  gtk_tree_iter_free (self->iter);
 }

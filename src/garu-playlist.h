@@ -26,16 +26,17 @@ G_BEGIN_DECLS
 #define GARU_TYPE_PLAYLIST (garu_playlist_get_type())
 
 G_DECLARE_FINAL_TYPE (GaruPlaylist, garu_playlist, GARU, PLAYLIST, GtkBox);
-
-struct _GaruPlaylistClass
-{
-  GtkBoxClass parent;
+enum {
+  GARU_PLAYLIST_GET_START_TRACK,
+  GARU_PLAYLIST_GET_SELECTED,
+  GARU_PLAYLIST_GET_FIRST,
+  GARU_PLAYLIST_GET_NEXT,
+  GARU_PLAYLIST_GET_PREV
 };
 
-GaruPlaylist *garu_playlist_new        (void);
-gchar        *garu_playlist_get_track (GaruPlaylist *self);
-gchar        *garu_playlist_get_next_track (GaruPlaylist *self);
-gchar        *garu_playlist_get_previous_track (GaruPlaylist *self);
+GaruPlaylist *garu_playlist_new            (void);
+gchar        *garu_playlist_get_track      (GaruPlaylist *self, gint type);
+void          garu_playlist_free           (GaruPlaylist *self);
 
 G_END_DECLS
 

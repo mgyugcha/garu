@@ -1,4 +1,4 @@
-/* garu-player-bin.c
+/* garu-playbin.c
  *
  * Copyright (C) 2016 Michael Yugcha <mgyugcha@gmail.com>
  *
@@ -18,11 +18,12 @@
 
 #include <gst/gst.h>
 
+#include "garu-player.h"
 #include "garu-utils.h"
-#include "garu-player-bin.h"
+#include "garu-playbin.h"
 #include "garu-application.h"
 
-struct _GaruPlayerBin
+struct _GaruPlaybin
 {
   GObject parent;
 
@@ -34,40 +35,39 @@ struct _GaruPlayerBin
 
 };
 
-G_DEFINE_TYPE (GaruPlayerBin, garu_player_bin, G_TYPE_OBJECT);
+G_DEFINE_TYPE (GaruPlaybin, garu_playbin, G_TYPE_OBJECT);
 
-static void     garu_player_bin_init_playbin (GaruPlayerBin *self);
-static gboolean bus_call                     (GstBus *bus,
-                                              GstMessage *msg,
-                                              gpointer data);
+static void     garu_playbin_init_playbin (GaruPlaybin *self);
+static gboolean garu_playbin_bus_call     (GstBus        *bus,
+					   GstMessage    *msg);
 
 static void
-garu_player_bin_finalize (GObject *gobject)
+garu_playbin_finalize (GObject *gobject)
 {
-  GaruPlayerBin *self;
-  self = GARU_PLAYER_BIN (gobject);
+  GaruPlaybin *self;
+  self = GARU_PLAYBIN (gobject);
   g_print ("Finalize player bin\n");
   gst_element_set_state (self->playbin, GST_STATE_NULL);
   gst_object_unref (GST_OBJECT (self->playbin));
-  G_OBJECT_CLASS (garu_player_bin_parent_class)->finalize (gobject);
+  G_OBJECT_CLASS (garu_playbin_parent_class)->finalize (gobject);
 }
 
 static void
-garu_player_bin_class_init (GaruPlayerBinClass *klass)
+garu_playbin_class_init (GaruPlaybinClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->finalize = garu_player_bin_finalize;
+  object_class->finalize = garu_playbin_finalize;
 }
 
 static void
-garu_player_bin_init (GaruPlayerBin *self)
+garu_playbin_init (GaruPlaybin *self)
 {
-  garu_player_bin_init_playbin (self);
+  garu_playbin_init_playbin (self);
 }
 
 static void
-garu_player_bin_init_playbin (GaruPlayerBin *self)
+garu_playbin_init_playbin (GaruPlaybin *self)
 {
   GstBus *bus;
 
@@ -105,7 +105,7 @@ garu_player_bin_init_playbin (GaruPlayerBin *self)
       g_object_set (self->playbin, "audio-sink", bin, NULL);
 
       g_object_set ( G_OBJECT(self->karaoke), "level", 0, NULL);
-      garu_player_bin_update_equalizer (self);
+      garu_playbin_update_equalizer (self);
     }
   else
     {
@@ -114,7 +114,7 @@ garu_player_bin_init_playbin (GaruPlayerBin *self)
 
   //g_object_set ( G_OBJECT(self->playbin), "volume", 1.0, NULL);
   bus = gst_pipeline_get_bus (GST_PIPELINE (self->playbin));
-  gst_bus_add_watch (bus, bus_call, NULL);
+  gst_bus_add_watch (bus, (GstBusFunc) garu_playbin_bus_call, NULL);
   gst_object_unref (bus);
 
   /* also clean up */
@@ -123,72 +123,71 @@ garu_player_bin_init_playbin (GaruPlayerBin *self)
 }
 
 static gboolean
-bus_call (GstBus *bus, GstMessage *msg, gpointer data)
+garu_playbin_bus_call (GstBus *bus, GstMessage *msg)
 {
-  switch (GST_MESSAGE_TYPE (msg)) {
+  switch (GST_MESSAGE_TYPE (msg))
+    {
+    case GST_MESSAGE_EOS:
+      g_print ("End of stream\n");
+      break;
 
-  case GST_MESSAGE_EOS:
-    g_print ("End of stream\n");
-    break;
-
-  case GST_MESSAGE_ERROR: {
-    gchar  *debug;
-    GError *error;
-
-    gst_message_parse_error (msg, &error, &debug);
-    g_free (debug);
-
-    g_printerr ("Error: %s\n", error->message);
-    g_error_free (error);
-    break;
-  }
-  default:
-    break;
-  }
+    case GST_MESSAGE_ERROR:
+      {
+	GError          *error;
+	GaruApplication *app;
+	GaruPlayer      *player;
+	app = GARU_APPLICATION (g_application_get_default ());
+	player = garu_application_get_player (app);
+	garu_player_stop (player);
+	gst_message_parse_error (msg, &error, NULL);
+	garu_application_show_message (app, error->message);
+	g_error_free ( error);
+      }
+    }
   return TRUE;
 }
 
-GaruPlayerBin *
-garu_player_bin_new (void)
+GaruPlaybin *
+garu_playbin_new (void)
 {
-  return g_object_new (GARU_TYPE_PLAYER_BIN, NULL);
+  return g_object_new (GARU_TYPE_PLAYBIN, NULL);
 }
 
 void
-garu_player_bin_set_uri (GaruPlayerBin *self, gchar *uri)
+garu_playbin_set_uri (GaruPlaybin *self, gchar *uri)
 {
   g_object_set (G_OBJECT (self->playbin), "uri", uri, NULL);
 }
 
 void
-garu_player_bin_play (GaruPlayerBin *self)
+garu_playbin_play (GaruPlaybin *self)
 {
   gst_element_set_state (self->playbin, GST_STATE_PLAYING);
 }
 
 void
-garu_player_bin_pause (GaruPlayerBin *self)
+garu_playbin_pause (GaruPlaybin *self)
 {
   gst_element_set_state (self->playbin, GST_STATE_PAUSED);
 }
 
 void
-garu_player_bin_stop (GaruPlayerBin *self)
+garu_playbin_stop (GaruPlaybin *self)
 {
   gst_element_set_state (self->playbin, GST_STATE_NULL);
 }
 
 void
-garu_player_bin_set_volume (GaruPlayerBin *self, gdouble value)
+garu_playbin_set_volume (GaruPlaybin *self, gdouble value)
 {
   g_object_set ( G_OBJECT(self->playbin), "volume", value, NULL);
 }
 
 void
-garu_player_bin_set_position (GaruPlayerBin *self, gdouble fraction)
+garu_playbin_set_position (GaruPlaybin *self, gdouble fraction)
 {
   gint64 position;
-  position = GST_TIME_AS_NSECONDS (garu_player_bin_get_duration(self));
+  position = GST_TIME_AS_NSECONDS (garu_playbin_get_duration(self));
   gst_element_seek (self->playbin, 1.0, GST_FORMAT_TIME,
                     GST_SEEK_FLAG_FLUSH,
                     GST_SEEK_TYPE_SET, position * fraction,
@@ -196,7 +195,7 @@ garu_player_bin_set_position (GaruPlayerBin *self, gdouble fraction)
 }
 
 gint64
-garu_player_bin_get_position (GaruPlayerBin *self)
+garu_playbin_get_position (GaruPlaybin *self)
 {
   gint64 position;
   gst_element_query_position (self->playbin, GST_FORMAT_TIME, &position);
@@ -204,7 +203,7 @@ garu_player_bin_get_position (GaruPlayerBin *self)
 }
 
 gint64
-garu_player_bin_get_duration (GaruPlayerBin *self)
+garu_playbin_get_duration (GaruPlaybin *self)
 {
   gint64 duration;
   gst_element_query_duration (self->playbin, GST_FORMAT_TIME, &duration);
@@ -212,20 +211,20 @@ garu_player_bin_get_duration (GaruPlayerBin *self)
 }
 
 void
-garu_player_bin_equalizer_disabled (GaruPlayerBin *self)
+garu_playbin_equalizer_disabled (GaruPlaybin *self)
 {
   g_object_set ( G_OBJECT(self->karaoke), "level", 0, NULL);
   
 }
 
 GstElement *
-garu_player_bin_get_equalizer (GaruPlayerBin *self)
+garu_playbin_get_equalizer (GaruPlaybin *self)
 {
   return self->equalizer;
 }
 
 void
-garu_player_bin_disable_equalizer (GaruPlayerBin *self)
+garu_playbin_disable_equalizer (GaruPlaybin *self)
 {
   gchar *band;
   gint   i;
@@ -239,7 +238,7 @@ garu_player_bin_disable_equalizer (GaruPlayerBin *self)
 }
 
 void
-garu_player_bin_update_equalizer (GaruPlayerBin *self)
+garu_playbin_update_equalizer (GaruPlaybin *self)
 {
   GaruApplication *app;
   GSettings       *settings;
@@ -252,7 +251,7 @@ garu_player_bin_update_equalizer (GaruPlayerBin *self)
 
   if (!g_settings_get_boolean (settings, "equalizer-enabled"))
     {
-      garu_player_bin_disable_equalizer (self);
+      garu_playbin_disable_equalizer (self);
       return;
     }
 

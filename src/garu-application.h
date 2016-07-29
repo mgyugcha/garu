@@ -25,13 +25,8 @@
 
 G_BEGIN_DECLS
 
-#define GARU_TYPE_APPLICATION (garu_application_get_type())
+#define GARU_TYPE_APPLICATION (garu_application_get_type ())
 G_DECLARE_FINAL_TYPE (GaruApplication, garu_application, GARU, APPLICATION, GtkApplication);
-
-struct _GaruApplicationClass
-{
-  GtkApplicationClass parent_class;
-};
 
 GaruApplication *garu_application_new          (void);
 GMenu           *garu_application_get_menu     (GaruApplication *self);
@@ -40,6 +35,8 @@ void             garu_application_set_playlist (GaruApplication *self,
 						GaruPlaylist *playlist);
 GaruPlaylist    *garu_application_get_playlist (GaruApplication *self);
 GSettings       *garu_application_get_settings (GaruApplication *self);
+void             garu_application_show_message (GaruApplication *self,
+						gchar           *message);
 
 G_END_DECLS
 

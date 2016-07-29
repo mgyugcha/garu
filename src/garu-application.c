@@ -199,3 +199,19 @@ garu_application_get_settings (GaruApplication *self)
 {
   return self->settings;
 }
+
+void
+garu_application_show_message (GaruApplication *self, gchar *message)
+{
+  GtkWindow *window;
+  GtkWidget *dialog;
+
+  window = gtk_application_get_active_window (GTK_APPLICATION (self));
+  dialog = gtk_message_dialog_new (window,
+				   GTK_DIALOG_MODAL,
+				   GTK_MESSAGE_WARNING,
+				   GTK_BUTTONS_CLOSE,
+				   message);
+  gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_destroy (dialog);
+}

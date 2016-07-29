@@ -8,7 +8,7 @@ garu_SOURCES = \
 	garu-song-box.c \
 	garu-headerbar.c \
 	garu-player.c \
-	garu-player-bin.c \
+	garu-playbin.c \
 	garu-tagger.c \
 	garu-playlist.c \
 	garu-library.c \

@@ -20,7 +20,7 @@
 
 #include "garu-application.h"
 #include "garu-player.h"
-#include "garu-player-bin.h"
+#include "garu-playbin.h"
 #include "garu-utils.h"
 
 #define GARU_TIMES 20
@@ -35,8 +35,8 @@ struct _GaruPlayer
   gint           status;
 
   /* Plates */
-  GaruPlayerBin *plate1;
-  GaruPlayerBin *plate2;
+  GaruPlaybin *plate1;
+  GaruPlaybin *plate2;
 
   /* Tagger */
   GaruTagger    *tagger;
@@ -197,8 +197,8 @@ garu_player_class_init (GaruPlayerClass *klass)
 static void
 garu_player_init (GaruPlayer *self)
 {
-  self->plate1 = garu_player_bin_new ();
-  garu_player_bin_set_volume (self->plate1, self->volume);
+  self->plate1 = garu_playbin_new ();
+  garu_playbin_set_volume (self->plate1, self->volume);
   self->plate2 = NULL;
   self->crossfade = TRUE;
   self->crossfade_id = 0;
@@ -237,8 +237,8 @@ garu_player_do_crossfade (GaruPlayer *self)
   self->crossfade_times = 0;
   interval = self->crossfade_seconds * 1000 / GARU_TIMES; /* miliseconds */
   self->status = GARU_PLAYER_STATUS_CROSSFADING;
-  garu_player_bin_set_volume (self->plate2, 0);
-  garu_player_bin_play (self->plate2);
+  garu_playbin_set_volume (self->plate2, 0);
+  garu_playbin_play (self->plate2);
   self->crossfade_id =
     g_timeout_add (interval, (GSourceFunc) garu_player_crossfade, self);
 }
@@ -253,14 +253,14 @@ garu_player_crossfade (GaruPlayer *self)
   fraction = (self->volume / (gdouble) GARU_TIMES) * self->crossfade_times;
   if (self->crossfade_times < GARU_TIMES)
     {
-      garu_player_bin_set_volume (self->plate1, self->volume-fraction);
-      garu_player_bin_set_volume (self->plate2, fraction);
+      garu_playbin_set_volume (self->plate1, self->volume-fraction);
+      garu_playbin_set_volume (self->plate2, fraction);
       response = TRUE;
     }
   else
     {
       garu_player_unref_plates (self);
-      garu_player_bin_set_volume (self->plate1, self->volume);
+      garu_playbin_set_volume (self->plate1, self->volume);
       self->status = GARU_PLAYER_STATUS_PLAYING;
       response = FALSE;
     }
@@ -313,14 +313,14 @@ garu_player_set_track (GaruPlayer *self, gchar *uri)
     {
     case GARU_PLAYER_STATUS_STOPPED:
     case GARU_PLAYER_STATUS_PAUSED:
-      garu_player_bin_set_uri (self->plate1, uri);
+      garu_playbin_set_uri (self->plate1, uri);
       break;
     case GARU_PLAYER_STATUS_PLAYING:
       position = GST_TIME_AS_MSECONDS (garu_player_get_position (self));
       if (self->crossfade && self->crossfade_change_track && position > 1000)
 	{
-	  self->plate2 = garu_player_bin_new ();
-	  garu_player_bin_set_uri (self->plate2, uri);
+	  self->plate2 = garu_playbin_new ();
+	  garu_playbin_set_uri (self->plate2, uri);
 	}
       else
 	{
@@ -330,7 +330,7 @@ garu_player_set_track (GaruPlayer *self, gchar *uri)
       break;
     case GARU_PLAYER_STATUS_CROSSFADING:
       garu_player_stop (self);
-      garu_player_bin_set_uri (self->plate1, uri);
+      garu_playbin_set_uri (self->plate1, uri);
       break;
     }
   garu_tagger_set_uri (self->tagger, uri);
@@ -347,7 +347,7 @@ garu_player_play (GaruPlayer *self)
       break;
     default:
       self->status = GARU_PLAYER_STATUS_PLAYING;
-      garu_player_bin_play (self->plate1);
+      garu_playbin_play (self->plate1);
       break;
     }
   g_signal_emit (self, signals[PLAYING], 0);
@@ -359,14 +359,14 @@ garu_player_pause (GaruPlayer *self)
   switch (self->status)
     {
     case GARU_PLAYER_STATUS_CROSSFADING:
-      garu_player_bin_set_volume (self->plate2, self->volume);
-      garu_player_bin_pause (self->plate1);
-      garu_player_bin_pause (self->plate2);
+      garu_playbin_set_volume (self->plate2, self->volume);
+      garu_playbin_pause (self->plate1);
+      garu_playbin_pause (self->plate2);
       g_source_remove (self->crossfade_id);
       garu_player_unref_plates (self);
       break;
     case GARU_PLAYER_STATUS_PLAYING:
-      garu_player_bin_pause (self->plate1);
+      garu_playbin_pause (self->plate1);
       break;
     }
   self->status = GARU_PLAYER_STATUS_PAUSED;
@@ -379,13 +379,13 @@ garu_player_stop (GaruPlayer *self)
     {
     case GARU_PLAYER_STATUS_CROSSFADING:
       g_source_remove (self->crossfade_id);
-      garu_player_bin_set_volume (self->plate2, self->volume);
-      garu_player_bin_stop (self->plate1);
-      garu_player_bin_stop (self->plate2);
+      garu_playbin_set_volume (self->plate2, self->volume);
+      garu_playbin_stop (self->plate1);
+      garu_playbin_stop (self->plate2);
       garu_player_unref_plates (self);
       break;
     case GARU_PLAYER_STATUS_PLAYING:
-      garu_player_bin_stop (self->plate1);
+      garu_playbin_stop (self->plate1);
       break;
     }
   self->status = GARU_PLAYER_STATUS_STOPPED;
@@ -403,10 +403,10 @@ garu_player_set_position (GaruPlayer *self, gdouble fraction)
   switch (self->status)
     {
     case GARU_PLAYER_STATUS_CROSSFADING:
-      garu_player_bin_set_position (self->plate2, fraction);
+      garu_playbin_set_position (self->plate2, fraction);
       break;
     default:
-      garu_player_bin_set_position (self->plate1, fraction);
+      garu_playbin_set_position (self->plate1, fraction);
       break;
     }
 }
@@ -418,10 +418,10 @@ garu_player_get_position (GaruPlayer *self)
   switch (self->status)
     {
     case GARU_PLAYER_STATUS_PLAYING:
-      position = garu_player_bin_get_position (self->plate1);
+      position = garu_playbin_get_position (self->plate1);
       break;
     case GARU_PLAYER_STATUS_CROSSFADING:
-      position = garu_player_bin_get_position (self->plate2);
+      position = garu_playbin_get_position (self->plate2);
       break;
     default:
       position = 0;
@@ -450,9 +450,9 @@ garu_player_update_equalizer (GaruPlayer *self)
   switch (self->status)
     {
     case GARU_PLAYER_STATUS_CROSSFADING:
-      garu_player_bin_update_equalizer (self->plate2);
+      garu_playbin_update_equalizer (self->plate2);
     default:
-      garu_player_bin_update_equalizer (self->plate1);
+      garu_playbin_update_equalizer (self->plate1);
       break;
     }
 }
@@ -474,7 +474,7 @@ void
 garu_player_set_volume (GaruPlayer *self, gdouble volume)
 {
   self->volume = volume;
-  garu_player_bin_set_volume (self->plate1, volume);
+  garu_playbin_set_volume (self->plate1, volume);
 }
 
 gdouble

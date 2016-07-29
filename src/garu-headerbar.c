@@ -58,6 +58,8 @@ static void       garu_headerbar_stop_button_clicked   (GtkButton      *button,
                                                         GaruHeaderbar  *self);
 static void       garu_headerbar_next_button_clicked   (GtkButton      *button,
                                                         GaruHeaderbar  *self);
+static void       garu_headerbar_prev_button_clicked   (GtkButton      *button,
+                                                        GaruHeaderbar  *self);
 static void       garu_headerbar_volume_change         (GtkScaleButton *button,
                                                         gdouble         value);
 static void       garu_headerbar_new_playing           (GaruPlayer     *player,
@@ -111,6 +113,8 @@ garu_headerbar_init_control_buttons (GaruHeaderbar *self)
   prev_button =
     garu_headerbar_new_button ("media-skip-backward-symbolic", FALSE);
   gtk_button_set_relief(GTK_BUTTON(prev_button), GTK_RELIEF_NONE);
+  g_signal_connect (prev_button, "clicked",
+                    G_CALLBACK (garu_headerbar_prev_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), prev_button, FALSE, FALSE, 0);
   /* play */
   play_button =
@@ -213,6 +217,13 @@ garu_headerbar_sync_progress (GaruHeaderbar *self)
 
   app = GARU_APPLICATION (g_application_get_default ());
   player = garu_application_get_player (app);
+
+  if (garu_player_get_status (player) == GARU_PLAYER_STATUS_STOPPED)
+    {
+      garu_headerbar_sync_progress_stop (self);
+      return FALSE;
+    }
+
   tagger = garu_player_get_tagger (player);
   len = garu_tagger_get_length (tagger);
   pos = GST_TIME_AS_SECONDS (garu_player_get_position (player));
@@ -252,7 +263,7 @@ garu_headerbar_play_button_clicked (GtkButton *button, GaruHeaderbar *self)
   switch (garu_player_get_status (player))
     {
     case GARU_PLAYER_STATUS_STOPPED:
-      file = garu_playlist_get_track (playlist);
+      file = garu_playlist_get_track (playlist, GARU_PLAYLIST_GET_START_TRACK);
       if (file == NULL)
 	return;
       garu_player_set_track (player, g_filename_to_uri (file, NULL, NULL));
@@ -264,8 +275,7 @@ garu_headerbar_play_button_clicked (GtkButton *button, GaruHeaderbar *self)
     case GARU_PLAYER_STATUS_PLAYING:
     case GARU_PLAYER_STATUS_CROSSFADING:
       garu_player_pause (player);
-      garu_headerbar_set_button_image (button,
-				       "media-playback-start-symbolic");
+      garu_headerbar_set_button_image (button, "media-playback-start-symbolic");
       garu_headerbar_sync_progress_stop (self);
       break;
     }
@@ -276,15 +286,18 @@ garu_headerbar_stop_button_clicked (GtkButton *button, GaruHeaderbar *self)
 {
   GaruApplication *app;
   GaruPlayer      *player;
+  GaruPlaylist    *playlist;
 
   app = GARU_APPLICATION (g_application_get_default ());
   player = garu_application_get_player (app);
+  playlist = garu_application_get_playlist (app);
   garu_headerbar_set_button_image (GTK_BUTTON (self->play_button),
 				   "media-playback-start-symbolic");
   garu_headerbar_sync_progress_stop (self);
   gtk_widget_set_sensitive (self->stop_button, FALSE);
   garu_song_box_progress_bar_set_fraction (self->song_box, 0);
   garu_song_box_default_title (self->song_box);
+  garu_playlist_free (playlist);
   garu_player_stop (player);
 }
 
@@ -300,7 +313,30 @@ garu_headerbar_next_button_clicked (GtkButton *button, GaruHeaderbar *self)
   player = garu_application_get_player (app);
   playlist = garu_application_get_playlist (app);
 
-  file = garu_playlist_get_next_track (playlist);
+  file = garu_playlist_get_track (playlist, GARU_PLAYLIST_GET_NEXT);
+
+  if (file == NULL)
+    return;
+
+  garu_player_set_track (player, g_filename_to_uri (file, NULL, NULL));
+  garu_player_play (player);
+
+  g_free (file);
+}
+
+static void
+garu_headerbar_prev_button_clicked (GtkButton *button, GaruHeaderbar *self)
+{
+  GaruApplication *app;
+  GaruPlayer      *player;
+  GaruPlaylist    *playlist;
+  gchar           *file;
+
+  app = GARU_APPLICATION (g_application_get_default ());
+  player = garu_application_get_player (app);
+  playlist = garu_application_get_playlist (app);
+
+  file = garu_playlist_get_track (playlist, GARU_PLAYLIST_GET_PREV);
 
   if (file == NULL)
     return;
