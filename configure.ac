@@ -12,7 +12,6 @@ GLIB_GSETTINGS
 
 PKG_CHECK_MODULES([GTK], [gtk+-3.0])
 PKG_CHECK_MODULES([GSTREAMER], [gstreamer-1.0])
-PKG_CHECK_MODULES([GSTREAMERUTILS], [gstreamer-pbutils-1.0])
 PKG_CHECK_MODULES([TAGLIB_C], [taglib_c])
 
 # Checks for header files.

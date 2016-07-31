@@ -2,15 +2,19 @@
 <schemalist>
   <schema path="/com/github/mgyugcha/garu/" id="com.github.mgyugcha.garu">
 
-    <key type="b" name="dark-theme">
+    <key type="b" name="use-dark-theme">
       <default>false</default>
       <summary>Dark Theme</summary>
       <description></description>
     </key>
 
+    <key type="b" name="show-settings-button">
+      <default>false</default>
+    </key>
+
     <!-- Volume -->
     <key type="d" name="volume">
-      <default>1.1</default>
+      <default>1</default>
       <summary>Volume for the player</summary>
     </key>
 

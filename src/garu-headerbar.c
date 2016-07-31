@@ -28,51 +28,103 @@ struct _GaruHeaderbar
 {
   GtkHeaderBar parent;
 
-  /* Play buttons */
+  /* buttons */
   GtkWidget *prev_button;
   GtkWidget *play_button;
   GtkWidget *stop_button;
   GtkWidget *next_button;
+  GtkWidget *settings_button;
 
-  /* Song information */
+  /* song information */
   GaruSongBox *song_box;
   guint        timeout_id;
 };
 
 G_DEFINE_TYPE (GaruHeaderbar, garu_headerbar, GTK_TYPE_HEADER_BAR);
 
-static void       garu_headerbar_init_song_box         (GaruHeaderbar  *self);
-static void       garu_headerbar_init_control_buttons  (GaruHeaderbar  *self);
-static void       garu_headerbar_init_playback_buttons (GaruHeaderbar  *self);
-static GtkWidget *garu_headerbar_new_button            (const gchar    *name,
-                                                        gboolean        toggle);
-static void       garu_headerbar_set_button_image      (GtkButton      *button,
-                                                        const gchar    *name);
-static gboolean   garu_headerbar_sync_progress         (GaruHeaderbar  *self);
-static void       garu_headerbar_sync_progress_stop    (GaruHeaderbar  *self);
+enum {
+  PROP_0,
+  PROP_SHOW_SETTINGS_BUTTON,
+  LAST_PROP
+};
+
+static GParamSpec *properties [LAST_PROP];
+
+static void       garu_headerbar_init_song_box            (GaruHeaderbar  *self);
+static void       garu_headerbar_init_control_buttons     (GaruHeaderbar  *self);
+static void       garu_headerbar_init_playback_buttons    (GaruHeaderbar  *self);
+static GtkWidget *garu_headerbar_new_button               (const gchar    *name,
+                                                           gboolean        toggle);
+static void       garu_headerbar_set_button_image         (GtkButton      *button,
+                                                           const gchar    *name);
+static gboolean   garu_headerbar_sync_progress            (GaruHeaderbar  *self);
+static void       garu_headerbar_sync_progress_stop       (GaruHeaderbar  *self);
 
 /* Signals */
-static void       garu_headerbar_play_button_clicked   (GtkButton      *button,
-                                                        GaruHeaderbar  *self);
-static void       garu_headerbar_stop_button_clicked   (GtkButton      *button,
-                                                        GaruHeaderbar  *self);
-static void       garu_headerbar_next_button_clicked   (GtkButton      *button,
-                                                        GaruHeaderbar  *self);
-static void       garu_headerbar_prev_button_clicked   (GtkButton      *button,
-                                                        GaruHeaderbar  *self);
-static void       garu_headerbar_volume_change         (GtkScaleButton *button,
-                                                        gdouble         value);
-static void       garu_headerbar_new_playing           (GaruPlayer     *player,
-                                                        GaruHeaderbar  *self);
+static void       garu_headerbar_play_button_clicked      (GtkButton      *button,
+                                                           GaruHeaderbar  *self);
+static void       garu_headerbar_stop_button_clicked      (GtkButton      *button,
+                                                           GaruHeaderbar  *self);
+static void       garu_headerbar_next_button_clicked      (GtkButton      *button,
+                                                           GaruHeaderbar  *self);
+static void       garu_headerbar_prev_button_clicked      (GtkButton      *button,
+                                                           GaruHeaderbar  *self);
+static void       garu_headerbar_volume_change            (GtkScaleButton *button,
+                                                           gdouble         value);
+static void       garu_headerbar_new_playing              (GaruPlayer     *player,
+                                                           GaruHeaderbar  *self);
+static void       garu_headerbar_set_show_settings_button (GaruHeaderbar  *self,
+                                                           gboolean value);
+static GtkWidget *garu_headerbar_create_settings_button   (GaruHeaderbar *self);
+
+static void
+garu_headerbar_get_property (GObject    *object,
+                             guint       property_id,
+                             GValue     *value,
+                             GParamSpec *pspec)
+{
+  // GaruApplication *self = GARU_APPLICATION (object);
+}
+
+static void
+garu_headerbar_set_property (GObject      *object,
+                             guint         property_id,
+                             const GValue *value,
+                             GParamSpec   *pspec)
+{
+  GaruHeaderbar *self = GARU_HEADERBAR (object);
+  switch (property_id)
+    {
+    case PROP_SHOW_SETTINGS_BUTTON:
+      garu_headerbar_set_show_settings_button (self,
+                                               g_value_get_boolean (value));
+      break;
+    }
+}
+
 static void
 garu_headerbar_class_init (GaruHeaderbarClass *klass)
 {
+  GObjectClass      *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->get_property = garu_headerbar_get_property;
+  object_class->set_property = garu_headerbar_set_property;
+
+  /* properties */
+  properties [PROP_SHOW_SETTINGS_BUTTON] =
+    g_param_spec_boolean ("show-settings-button",
+                          "Show settings button",
+                          "Show the settings button in the GtkHeaderBar",
+                          FALSE, G_PARAM_WRITABLE);
+
+  g_object_class_install_properties (object_class, LAST_PROP, properties);
 }
 
 static void
 garu_headerbar_init (GaruHeaderbar *self)
 {
   GaruApplication *app;
+  GSettings       *settings;
   GaruPlayer      *player;
 
   self->timeout_id = 0;
@@ -83,9 +135,14 @@ garu_headerbar_init (GaruHeaderbar *self)
 
   gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (self), TRUE);
 
-  /* signals */
   app = GARU_APPLICATION (g_application_get_default ());
+  settings = garu_application_get_settings (app);
   player = garu_application_get_player (app);
+
+
+  /* signals */
+  g_settings_bind (settings, "show-settings-button",
+                   self, "show-settings-button", G_SETTINGS_BIND_GET);
   g_signal_connect (player, "playing",
                     G_CALLBACK (garu_headerbar_new_playing), self);
 }
@@ -103,30 +160,28 @@ garu_headerbar_init_song_box (GaruHeaderbar *self)
 static void
 garu_headerbar_init_control_buttons (GaruHeaderbar *self)
 {
-  GtkStyleContext *context;
-  GtkWidget       *box, *prev_button, *play_button, *stop_button, *next_button;
+  GtkWidget *box, *prev_button, *play_button, *stop_button, *next_button;
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-  context = gtk_widget_get_style_context (box);
 
   /* previous */
   prev_button =
     garu_headerbar_new_button ("media-skip-backward-symbolic", FALSE);
-  gtk_button_set_relief(GTK_BUTTON(prev_button), GTK_RELIEF_NONE);
+  gtk_button_set_relief (GTK_BUTTON(prev_button), GTK_RELIEF_NONE);
   g_signal_connect (prev_button, "clicked",
                     G_CALLBACK (garu_headerbar_prev_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), prev_button, FALSE, FALSE, 0);
   /* play */
   play_button =
     garu_headerbar_new_button ("media-playback-start-symbolic", FALSE);
-  gtk_button_set_relief(GTK_BUTTON(play_button), GTK_RELIEF_NONE);
+  gtk_button_set_relief (GTK_BUTTON(play_button), GTK_RELIEF_NONE);
   g_signal_connect (play_button, "clicked",
                     G_CALLBACK (garu_headerbar_play_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), play_button, FALSE, FALSE, 0);
   /* stop */
   stop_button =
     garu_headerbar_new_button ("media-playback-stop-symbolic", FALSE);
-  gtk_button_set_relief(GTK_BUTTON(stop_button), GTK_RELIEF_NONE);
+  gtk_button_set_relief (GTK_BUTTON(stop_button), GTK_RELIEF_NONE);
   gtk_widget_set_sensitive (stop_button, FALSE);
   g_signal_connect (stop_button, "clicked",
                     G_CALLBACK (garu_headerbar_stop_button_clicked), self);
@@ -134,7 +189,7 @@ garu_headerbar_init_control_buttons (GaruHeaderbar *self)
   /* next */
   next_button =
     garu_headerbar_new_button ("media-skip-forward-symbolic", FALSE);
-  gtk_button_set_relief(GTK_BUTTON(next_button), GTK_RELIEF_NONE);
+  gtk_button_set_relief (GTK_BUTTON(next_button), GTK_RELIEF_NONE);
   g_signal_connect (next_button, "clicked",
                     G_CALLBACK (garu_headerbar_next_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), next_button, FALSE, FALSE, 0);
@@ -153,30 +208,28 @@ garu_headerbar_init_playback_buttons (GaruHeaderbar *self)
 {
   GSettings       *settings;
   GaruApplication *app;
-  GtkWidget       *box, *button;
-  GtkStyleContext *context;
+  GtkWidget       *box, *button, *image;
 
   app = GARU_APPLICATION (g_application_get_default ());
   settings = garu_application_get_settings (app);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-  context = gtk_widget_get_style_context (box);
 
   /* shuffle */
   button = garu_headerbar_new_button ("media-playlist-shuffle-symbolic", TRUE);
-  gtk_button_set_relief(GTK_BUTTON(button), GTK_RELIEF_NONE);
+  gtk_button_set_relief (GTK_BUTTON(button), GTK_RELIEF_NONE);
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
   gtk_widget_show (button);
   /* repeat */
   button = garu_headerbar_new_button ("media-playlist-repeat-symbolic", TRUE);
-  gtk_button_set_relief(GTK_BUTTON(button), GTK_RELIEF_NONE);
+  gtk_button_set_relief (GTK_BUTTON(button), GTK_RELIEF_NONE);
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
   gtk_widget_show (button);
   /* volume */
   button = gtk_volume_button_new ();
   gtk_scale_button_set_value (GTK_SCALE_BUTTON (button), 1);
   g_settings_bind (settings, "volume", button, "value",
-		   G_SETTINGS_BIND_DEFAULT);
+                   G_SETTINGS_BIND_DEFAULT);
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
   gtk_widget_show (button);
 
@@ -203,7 +256,7 @@ garu_headerbar_set_button_image (GtkButton *button, const gchar *name)
   GtkWidget *image;
   image = gtk_button_get_image (button);
   gtk_image_set_from_icon_name (GTK_IMAGE (image), name,
-				GTK_ICON_SIZE_SMALL_TOOLBAR);
+                                GTK_ICON_SIZE_SMALL_TOOLBAR);
 }
 
 static gboolean
@@ -265,7 +318,7 @@ garu_headerbar_play_button_clicked (GtkButton *button, GaruHeaderbar *self)
     case GARU_PLAYER_STATUS_STOPPED:
       file = garu_playlist_get_track (playlist, GARU_PLAYLIST_GET_START_TRACK);
       if (file == NULL)
-	return;
+        return;
       garu_player_set_track (player, g_filename_to_uri (file, NULL, NULL));
       gtk_widget_set_sensitive (self->stop_button, TRUE);
       g_free (file);
@@ -292,7 +345,7 @@ garu_headerbar_stop_button_clicked (GtkButton *button, GaruHeaderbar *self)
   player = garu_application_get_player (app);
   playlist = garu_application_get_playlist (app);
   garu_headerbar_set_button_image (GTK_BUTTON (self->play_button),
-				   "media-playback-start-symbolic");
+                                   "media-playback-start-symbolic");
   garu_headerbar_sync_progress_stop (self);
   gtk_widget_set_sensitive (self->stop_button, FALSE);
   garu_song_box_progress_bar_set_fraction (self->song_box, 0);
@@ -360,7 +413,7 @@ garu_headerbar_new_playing (GaruPlayer *player, GaruHeaderbar *self)
 
   garu_headerbar_sync_progress_stop (self);
   garu_headerbar_set_button_image (GTK_BUTTON (self->play_button),
-				   "media-playback-pause-symbolic");
+                                   "media-playback-pause-symbolic");
   length = garu_tagger_get_length (tagger);
   garu_song_box_set_length (self->song_box, length);
   garu_song_box_set_title (self->song_box, title, artist);
@@ -373,6 +426,52 @@ garu_headerbar_new_playing (GaruPlayer *player, GaruHeaderbar *self)
   gtk_widget_show_all (GTK_WIDGET (self->song_box));
   g_free (artist);
   g_free (title);
+}
+
+static void
+garu_headerbar_set_show_settings_button (GaruHeaderbar *self, gboolean value)
+{
+  GaruApplication *app;
+
+  app = GARU_APPLICATION (g_application_get_default ());
+  if (!gtk_application_prefers_app_menu (GTK_APPLICATION (app)) || value)
+    {
+      self->settings_button = garu_headerbar_create_settings_button (self);
+    }
+  else
+    {
+      if (self->settings_button)
+        gtk_widget_destroy (self->settings_button);
+    }
+}
+
+static GtkWidget *
+garu_headerbar_create_settings_button (GaruHeaderbar *self)
+{
+  GList           *list;
+  GtkWidget       *button, *image;
+  GaruApplication *app;
+  GMenuModel      *menu_model;
+
+  app = GARU_APPLICATION (g_application_get_default ());
+
+  list = gtk_container_get_children (GTK_CONTAINER (self));
+  list = g_list_last (list);
+  button = gtk_menu_button_new ();
+  gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
+  image = gtk_image_new_from_icon_name ("emblem-system-symbolic",
+                                        GTK_ICON_SIZE_SMALL_TOOLBAR);
+  gtk_button_set_image (GTK_BUTTON (button), image);
+  gtk_widget_show (button);
+  gtk_box_pack_start (GTK_BOX (list->data), button, FALSE, FALSE, 0);
+
+  /* create menu */
+  menu_model = G_MENU_MODEL (garu_application_get_menu (app));
+  gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (button), menu_model);
+  g_print ("Removiendo\n");
+  g_object_unref (menu_model);
+
+  return button;
 }
 
 GtkWidget *

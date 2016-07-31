@@ -73,20 +73,20 @@ enum {
 };
 
 static GParamSpec *properties [LAST_PROP];
-static guint signals [LAST_SIGNAL];
+static guint       signals [LAST_SIGNAL];
 
-static void garu_player_load_settings (GaruPlayer *self);
-static void garu_player_do_crossfade (GaruPlayer *self);
-static gboolean garu_player_crossfade (GaruPlayer *self);
-static void garu_player_unref_plates (GaruPlayer *self);
-static void garu_player_set_crossfade_enabled (GaruPlayer *self,
-                                               gboolean   enabled);
-static void garu_player_set_crossfade_seconds    (GaruPlayer *self,
-						  gint        seconds);
-static void garu_player_set_crossfade_change_track (GaruPlayer *self,
-						    gboolean    enabled);
-static void garu_player_set_crossfade_track_ends  (GaruPlayer *self,
-						   gboolean    enabled);
+static void     garu_player_load_settings              (GaruPlayer *self);
+static void     garu_player_do_crossfade               (GaruPlayer *self);
+static gboolean garu_player_crossfade                  (GaruPlayer *self);
+static void     garu_player_unref_plates               (GaruPlayer *self);
+static void     garu_player_set_crossfade_enabled      (GaruPlayer *self,
+                                                        gboolean    enabled);
+static void     garu_player_set_crossfade_seconds      (GaruPlayer *self,
+                                                        gint        seconds);
+static void     garu_player_set_crossfade_change_track (GaruPlayer *self,
+                                                        gboolean    enabled);
+static void     garu_player_set_crossfade_track_ends   (GaruPlayer *self,
+                                                        gboolean    enabled);
 
 static void
 garu_player_get_property (GObject    *object,
@@ -129,7 +129,7 @@ garu_player_set_property (GObject      *object,
       break;
     case PROP_CROSSFADE_CHANGE_TRACK:
       garu_player_set_crossfade_change_track (self,
-					      g_value_get_boolean (value));
+                                              g_value_get_boolean (value));
       break;
     case PROP_CROSSFADE_TRACK_ENDS:
       garu_player_set_crossfade_track_ends (self, g_value_get_boolean (value));
@@ -145,43 +145,43 @@ garu_player_class_init (GaruPlayerClass *klass)
   object_class->get_property = garu_player_get_property;
   object_class->set_property = garu_player_set_property;
 
-  /* Properties */
+  /* properties */
   properties [PROP_VOLUME] =
     g_param_spec_double ("volume",
-			 "Volume",
-			 "Volume for the player",
-			 0.0, 1.0, 1.0,
-			 G_PARAM_WRITABLE);
+                         "Volume",
+                         "Volume for the player",
+                         0.0, 1.0, 1.0,
+                         G_PARAM_WRITABLE);
   properties [PROP_EQUALIZER] =
     g_param_spec_boolean ("equalizer",
                           "Equalizer",
                           "The equalizer is enabled",
                           FALSE,
-			  G_PARAM_WRITABLE);
+                          G_PARAM_WRITABLE);
   properties [PROP_CROSSFADE] =
     g_param_spec_boolean ("crossfade",
-			  "Crossfade",
-			  "Crossfade for the player",
-			  TRUE,
-			  G_PARAM_WRITABLE);
+                          "Crossfade",
+                          "Crossfade for the player",
+                          TRUE,
+                          G_PARAM_WRITABLE);
   properties [PROP_CROSSFADE_SECONDS] =
     g_param_spec_int ("crossfade-time",
-		      "Crossfade time",
-		      "Time for the transition",
-		      0, 12, 3,
-		      G_PARAM_WRITABLE);
+                      "Crossfade time",
+                      "Time for the transition",
+                      0, 12, 3,
+                      G_PARAM_WRITABLE);
   properties [PROP_CROSSFADE_CHANGE_TRACK] =
     g_param_spec_boolean ("crossfade-change-track",
                           "Crossfade change track",
                           "Crossfade when the user change the track",
                           TRUE,
-			  G_PARAM_WRITABLE);
+                          G_PARAM_WRITABLE);
   properties [PROP_CROSSFADE_TRACK_ENDS] =
     g_param_spec_boolean ("crossfade-track-ends",
                           "Crossfade track ends",
                           "Crossfade before the track ends",
                           TRUE,
-			  G_PARAM_WRITABLE);
+                          G_PARAM_WRITABLE);
   g_object_class_install_properties (object_class, LAST_PROP, properties);
 
   /* Signals */
@@ -217,17 +217,17 @@ garu_player_load_settings (GaruPlayer *self)
   settings = garu_utils_get_settings ();
 
   g_settings_bind (settings, "volume",
-		   self, "volume", G_SETTINGS_BIND_GET);
+                   self, "volume", G_SETTINGS_BIND_GET);
   g_settings_bind (settings, "equalizer-enabled",
-		   self, "equalizer", G_SETTINGS_BIND_GET);
+                   self, "equalizer", G_SETTINGS_BIND_GET);
   g_settings_bind (settings, "crossfade-enabled",
-		   self, "crossfade", G_SETTINGS_BIND_GET);
+                   self, "crossfade", G_SETTINGS_BIND_GET);
   g_settings_bind (settings, "crossfade-time",
-		   self, "crossfade-time", G_SETTINGS_BIND_GET);
+                   self, "crossfade-time", G_SETTINGS_BIND_GET);
   g_settings_bind (settings, "crossfade-change-track",
-		   self, "crossfade-change-track", G_SETTINGS_BIND_GET);
+                   self, "crossfade-change-track", G_SETTINGS_BIND_GET);
   g_settings_bind (settings, "crossfade-track-ends",
-		   self, "crossfade-track-ends", G_SETTINGS_BIND_GET);
+                   self, "crossfade-track-ends", G_SETTINGS_BIND_GET);
 }
 
 static void
@@ -318,15 +318,15 @@ garu_player_set_track (GaruPlayer *self, gchar *uri)
     case GARU_PLAYER_STATUS_PLAYING:
       position = GST_TIME_AS_MSECONDS (garu_player_get_position (self));
       if (self->crossfade && self->crossfade_change_track && position > 1000)
-	{
-	  self->plate2 = garu_playbin_new ();
-	  garu_playbin_set_uri (self->plate2, uri);
-	}
+        {
+          self->plate2 = garu_playbin_new ();
+          garu_playbin_set_uri (self->plate2, uri);
+        }
       else
-	{
-	  garu_player_stop (self);
-	  garu_player_set_track (self, uri);
-	}
+        {
+          garu_player_stop (self);
+          garu_player_set_track (self, uri);
+        }
       break;
     case GARU_PLAYER_STATUS_CROSSFADING:
       garu_player_stop (self);

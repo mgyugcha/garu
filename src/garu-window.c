@@ -25,8 +25,8 @@ struct _GaruWindow
 {
   GtkApplicationWindow parent;
 
-  GtkWidget *headerbar;
-  GaruPlayer *player;
+  GtkWidget           *headerbar;
+  GaruPlayer          *player;
 };
 
 G_DEFINE_TYPE (GaruWindow, garu_window, GTK_TYPE_APPLICATION_WINDOW);
@@ -52,6 +52,7 @@ static void
 garu_window_init_headerbar (GaruWindow *self)
 {
   GtkWidget *headerbar;
+
   headerbar = garu_headerbar_new ();
   gtk_window_set_titlebar (GTK_WINDOW (self), headerbar);
   gtk_widget_show (headerbar);

@@ -18,12 +18,12 @@
 
 #include <glib/gi18n.h>
 
+#include "garu-application.h"
 #include "garu-preferences.h"
 
 struct _GaruPreferences
 {
   GtkDialog  parent_instance;
-
   GSettings *settings;
 };
 
@@ -49,9 +49,9 @@ garu_preferences_finalize (GObject *object)
 
 static void
 garu_preferences_get_property (GObject    *object,
-			       guint       prop_id,
-			       GValue     *value,
-			       GParamSpec *pspec)
+                               guint       prop_id,
+                               GValue     *value,
+                               GParamSpec *pspec)
 {
   GaruPreferences *self = GARU_PREFERENCES (object);
 
@@ -64,9 +64,9 @@ garu_preferences_get_property (GObject    *object,
 
 static void
 garu_preferences_set_property (GObject      *object,
-			       guint         prop_id,
-			       const GValue *value,
-			       GParamSpec   *pspec)
+                               guint         prop_id,
+                               const GValue *value,
+                               GParamSpec   *pspec)
 {
   GaruPreferences *self = GARU_PREFERENCES (object);
 
@@ -117,7 +117,10 @@ garu_preferences_init_container (GaruPreferences *self)
 static GtkWidget *
 garu_preferences_init_box_appearance (GaruPreferences *self)
 {
-  GtkWidget   *grid, *label, *toogle;
+  GaruApplication *app;
+  GtkWidget       *grid, *label, *toogle;
+
+  app = GARU_APPLICATION (g_application_get_default ());
 
   grid = gtk_grid_new ();
   gtk_grid_set_column_spacing (GTK_GRID (grid), 10);
@@ -125,20 +128,25 @@ garu_preferences_init_box_appearance (GaruPreferences *self)
   gtk_widget_set_halign (GTK_WIDGET (grid), GTK_ALIGN_CENTER);
   gtk_container_set_border_width (GTK_CONTAINER (grid), 10);
 
-  /* Dark mode */
+  /* dark mode */
   label = gtk_label_new (_("Use dark theme"));
   toogle = gtk_switch_new ();
-  g_settings_bind (self->settings, "dark-theme", toogle, "active",
-		   G_SETTINGS_BIND_DEFAULT);
+  g_settings_bind (self->settings, "use-dark-theme",
+                   toogle, "active", G_SETTINGS_BIND_DEFAULT);
   gtk_grid_attach (GTK_GRID (grid), label, 1, 1, 1, 1);
   gtk_grid_attach (GTK_GRID (grid), toogle, 2, 1, 1, 1);
 
-  /* Button preferences */
-  label = gtk_label_new (_("Show button preferences in the window"));
-  toogle = gtk_switch_new ();
-  gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
-  gtk_grid_attach (GTK_GRID (grid), toogle, 2, 2, 1, 1);
+  /* preferences button */
+  if (gtk_application_prefers_app_menu (GTK_APPLICATION (app)))
+    {
+      label = gtk_label_new (_("Show button preferences in the window"));
+      toogle = gtk_switch_new ();
+      g_settings_bind (self->settings, "show-settings-button",
+                       toogle, "active", G_SETTINGS_BIND_DEFAULT);
+      gtk_grid_attach (GTK_GRID (grid), label, 1, 2, 1, 1);
+      gtk_grid_attach (GTK_GRID (grid), toogle, 2, 2, 1, 1);
 
+    }
   return grid;
 }
 
@@ -146,7 +154,7 @@ GaruPreferences *
 garu_preferences_new (GtkWindow *window)
 {
   return g_object_new (GARU_TYPE_PREFERENCES,
-		       "modal", TRUE,
-		       "transient-for", window,
-		       "use-header-bar", TRUE, NULL);
+                       "modal", TRUE,
+                       "transient-for", window,
+                       "use-header-bar", TRUE, NULL);
 }

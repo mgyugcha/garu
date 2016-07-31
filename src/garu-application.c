@@ -36,17 +36,17 @@ struct _GaruApplication
 G_DEFINE_TYPE (GaruApplication, garu_application, GTK_TYPE_APPLICATION);
 
 static void garu_application_effects_activated     (GSimpleAction *action,
-						    GVariant      *parameter,
-						    gpointer       self);
+                                                    GVariant      *parameter,
+                                                    gpointer       self);
 static void garu_application_preferences_activated (GSimpleAction *action,
-						    GVariant      *parameter,
-						    gpointer       self);
+                                                    GVariant      *parameter,
+                                                    gpointer       self);
 static void garu_application_about_activated       (GSimpleAction *action,
-						    GVariant      *parameter,
-						    gpointer       self);
+                                                    GVariant      *parameter,
+                                                    gpointer       self);
 static void garu_application_quit_activated        (GSimpleAction *action,
-						    GVariant      *parameter,
-						    gpointer       self);
+                                                    GVariant      *parameter,
+                                                    gpointer       self);
 
 static GActionEntry app_entries[] =
   {
@@ -70,22 +70,28 @@ garu_application_activate (GApplication *self)
 static void
 garu_application_startup (GApplication *self)
 {
-  GMenu *menu;
+  GMenu       *menu;
+  GtkSettings *gtk_settings;
 
   G_APPLICATION_CLASS (garu_application_parent_class)->startup (self);
 
   g_action_map_add_action_entries (G_ACTION_MAP (self), app_entries,
-				   G_N_ELEMENTS (app_entries), self);
+                                   G_N_ELEMENTS (app_entries), self);
 
-  menu = garu_application_get_menu (GARU_APPLICATION (self));
-  gtk_application_set_app_menu (GTK_APPLICATION (self), G_MENU_MODEL (menu));
+  /* application menu */
+  if (gtk_application_prefers_app_menu (GTK_APPLICATION (self)))
+    {
+      menu = garu_application_get_menu (GARU_APPLICATION (self));
+      gtk_application_set_app_menu (GTK_APPLICATION (self),
+                                    G_MENU_MODEL (menu));
+    }
 
   
   /* Dark Theme */
-  GtkSettings *gtk_settings = gtk_settings_get_default ();
-  g_settings_bind (GARU_APPLICATION (self)->settings, "dark-theme",
-		   gtk_settings, "gtk-application-prefer-dark-theme",
-		   G_SETTINGS_BIND_DEFAULT);
+  gtk_settings = gtk_settings_get_default ();
+  g_settings_bind (GARU_APPLICATION (self)->settings, "use-dark-theme",
+                   gtk_settings, "gtk-application-prefer-dark-theme",
+                   G_SETTINGS_BIND_GET);
 }
 
 static void
@@ -107,8 +113,8 @@ garu_application_init (GaruApplication *self)
 
 static void
 garu_application_effects_activated (GSimpleAction *action,
-				    GVariant      *parameter,
-				    gpointer       self)
+                                    GVariant      *parameter,
+                                    gpointer       self)
 {
   GaruEffects *effects;
   GtkWindow   *window;
@@ -119,8 +125,8 @@ garu_application_effects_activated (GSimpleAction *action,
 
 static void
 garu_application_preferences_activated (GSimpleAction *action,
-					GVariant      *parameter,
-					gpointer       self)
+                                        GVariant      *parameter,
+                                        gpointer       self)
 {
   GaruPreferences *preferences;
   GtkWindow       *window;
@@ -131,8 +137,8 @@ garu_application_preferences_activated (GSimpleAction *action,
 
 static void
 garu_application_about_activated (GSimpleAction *action,
-				  GVariant      *parameter,
-				  gpointer       self)
+                                  GVariant      *parameter,
+                                  gpointer       self)
 {
   GaruAboutDialog *about;
   GtkWindow       *window;
@@ -143,8 +149,8 @@ garu_application_about_activated (GSimpleAction *action,
 
 static void
 garu_application_quit_activated (GSimpleAction *action,
-				 GVariant      *parameter,
-				 gpointer       self)
+                                 GVariant      *parameter,
+                                 gpointer       self)
 {
   g_application_quit (G_APPLICATION (self));
 }
@@ -153,8 +159,8 @@ GaruApplication *
 garu_application_new (void)
 {
   return g_object_new (GARU_TYPE_APPLICATION,
-		       "application-id", "com.github.mgyugcha.garu",
-		       NULL);
+                       "application-id", "com.github.mgyugcha.garu",
+                       NULL);
 }
 
 GMenu *
@@ -208,10 +214,10 @@ garu_application_show_message (GaruApplication *self, gchar *message)
 
   window = gtk_application_get_active_window (GTK_APPLICATION (self));
   dialog = gtk_message_dialog_new (window,
-				   GTK_DIALOG_MODAL,
-				   GTK_MESSAGE_WARNING,
-				   GTK_BUTTONS_CLOSE,
-				   message);
+                                   GTK_DIALOG_MODAL,
+                                   GTK_MESSAGE_WARNING,
+                                   GTK_BUTTONS_CLOSE,
+                                   message);
   gtk_dialog_run (GTK_DIALOG (dialog));
   gtk_widget_destroy (dialog);
 }
