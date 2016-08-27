@@ -29,15 +29,34 @@ struct _GaruLibrary
 
 G_DEFINE_TYPE (GaruLibrary, garu_library, GTK_TYPE_BOX)
 
-enum {
+/*
+ * the view options shows the available options on Garu Music
+ * Player. This options are: folders, artists, albums, genres,
+ * radios.
+ */
+enum
+{
+  OPTION_FOLDERS,
+  OPTION_ARTISTS,
+  OPTION_ALBUMS,
+  OPTION_GENRES,
+  OPTION_RADIOS
+};
+
+enum
+{
+  COLUMN_ID,
   COLUMN_STRING,
   COLUMN_PIXBUF,
   NUM_COLUMNS
 };
 
-static void garu_library_init_container (GaruLibrary *self);
-static GtkWidget *garu_library_init_options_view (GaruLibrary *self);
-static GtkListStore *garu_library_get_options (GaruLibrary *self);
+static void          garu_library_init_container    (GaruLibrary       *self);
+static GtkWidget    *garu_library_init_view_options (GaruLibrary       *self);
+static GtkListStore *garu_library_get_options       (GaruLibrary       *self);
+static void          garu_library_row_actived       (GtkTreeView       *tree_view,
+						     GtkTreePath       *path,
+						     GtkTreeViewColumn *column);
 
 static void
 garu_library_init (GaruLibrary *self)
@@ -53,10 +72,10 @@ garu_library_class_init (GaruLibraryClass *klass)
 static void
 garu_library_init_container (GaruLibrary *self)
 {
-  GtkWidget *folder_structure, *separator, *options_view;
+  GtkWidget *folder_structure, *separator, *view_options;
 
-  options_view = garu_library_init_options_view (self);
-  gtk_box_pack_start (GTK_BOX (self), options_view, FALSE, FALSE, 0);
+  view_options = garu_library_init_view_options (self);
+  gtk_box_pack_start (GTK_BOX (self), view_options, FALSE, FALSE, 0);
 
   separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
   gtk_box_pack_start (GTK_BOX (self), separator, FALSE, FALSE, 0);  
@@ -66,8 +85,13 @@ garu_library_init_container (GaruLibrary *self)
 
 }
 
+/*
+ * the view options shows the available options on Garu Music
+ * Player. This options are: folders, artists, albums, genres,
+ * radios.
+ */
 static GtkWidget *
-garu_library_init_options_view (GaruLibrary *self)
+garu_library_init_view_options (GaruLibrary *self)
 {
   GtkWidget         *tree_view;
   GtkListStore      *store;
@@ -80,31 +104,33 @@ garu_library_init_options_view (GaruLibrary *self)
   tree_view = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
   gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (tree_view), FALSE);
   context = gtk_widget_get_style_context (tree_view);
-  gtk_style_context_add_class (context, "view");
   gtk_style_context_add_class (context, "sidebar");
 
   column = gtk_tree_view_column_new ();
-  gtk_tree_view_column_set_sizing (column, GTK_TREE_VIEW_COLUMN_FIXED);
-  gtk_tree_view_column_set_expand (column, TRUE);
 
-  /* Text */
+  /* text */
   renderer = gtk_cell_renderer_text_new ();
   gtk_cell_renderer_set_padding (renderer,
-        			 GARU_CELL_PADDING,
-				 GARU_CELL_PADDING);
+                                 GARU_CELL_PADDING,
+                                 GARU_CELL_PADDING);
   gtk_tree_view_column_pack_start (column, renderer, TRUE);
   gtk_tree_view_column_add_attribute (column, renderer,
-  				      "text", COLUMN_STRING);
-  /* Icon */
+                                      "text", COLUMN_STRING);
+  /* icon */
   renderer = gtk_cell_renderer_pixbuf_new ();
   gtk_cell_renderer_set_padding (renderer,
-				 GARU_CELL_PADDING,
-				 GARU_CELL_PADDING);
+                                 GARU_CELL_PADDING,
+                                 GARU_CELL_PADDING);
   gtk_tree_view_column_pack_start (column, renderer, FALSE);
   gtk_tree_view_column_add_attribute (column, renderer,
-  				      "icon-name", COLUMN_PIXBUF);
+                                      "icon-name", COLUMN_PIXBUF);
 
   gtk_tree_view_append_column (GTK_TREE_VIEW (tree_view), column);
+  gtk_tree_view_set_activate_on_single_click (GTK_TREE_VIEW (tree_view), TRUE);
+
+  /* signals */
+  g_signal_connect (tree_view, "row-activated",
+		    G_CALLBACK (garu_library_row_actived), NULL);
 
   return tree_view;
 }
@@ -113,47 +139,62 @@ static GtkListStore *
 garu_library_get_options (GaruLibrary *self)
 {
   GtkListStore *store;
-  GtkTreeIter iter;
+  GtkTreeIter   iter;
 
-  store = gtk_list_store_new (NUM_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
-
-  /* Folders */
+  store = gtk_list_store_new (NUM_COLUMNS, G_TYPE_INT,
+			      G_TYPE_STRING, G_TYPE_STRING);
+  /* folders */
   gtk_list_store_append (store, &iter);
   gtk_list_store_set (store, &iter,
-  		      COLUMN_STRING, _("Folders"),
-		      COLUMN_PIXBUF, "inode-directory-symbolic",
-		      -1);
-  /* Artist */
+		      COLUMN_ID, OPTION_FOLDERS,
+                      COLUMN_STRING, _("Folders"),
+                      COLUMN_PIXBUF, "inode-directory-symbolic", -1);
+  /* artist */
   gtk_list_store_append (store, &iter);
   gtk_list_store_set (store, &iter,
-  		      COLUMN_STRING, _("Artist"),
-		      COLUMN_PIXBUF, "system-users-symbolic",
-		      -1);
-  /* Albums */
+		      COLUMN_ID, OPTION_ARTISTS,
+                      COLUMN_STRING, _("Artist"),
+                      COLUMN_PIXBUF, "system-users-symbolic", -1);
+  /* albums */
   gtk_list_store_append (store, &iter);
   gtk_list_store_set (store, &iter,
-  		      COLUMN_STRING, _("Albums"),
-		      COLUMN_PIXBUF, "media-optical-cd-audio-symbolic",
-		      -1);
-  /* Generes */
+		      COLUMN_ID, OPTION_ALBUMS,
+                      COLUMN_STRING, _("Albums"),
+                      COLUMN_PIXBUF, "media-optical-cd-audio-symbolic", -1);
+  /* genres */
   gtk_list_store_append (store, &iter);
   gtk_list_store_set (store, &iter,
-  		      COLUMN_STRING, _("Generes"),
-		      COLUMN_PIXBUF, "system-file-manager-symbolic",
-		      -1);
-  /* Radios */
+		      COLUMN_ID, OPTION_GENRES,
+                      COLUMN_STRING, _("Genres"),
+                      COLUMN_PIXBUF, "system-file-manager-symbolic", -1);
+  /* radios */
   gtk_list_store_append (store, &iter);
   gtk_list_store_set (store, &iter,
-  		      COLUMN_STRING, _("Radios"),
-		      COLUMN_PIXBUF, "audio-input-microphone-symbolic",
-		      -1);
+		      COLUMN_ID, OPTION_RADIOS,
+                      COLUMN_STRING, _("Radios"),
+                      COLUMN_PIXBUF, "audio-input-microphone-symbolic", -1);
   return store;
+}
+
+static void
+garu_library_row_actived (GtkTreeView       *tree_view,
+			  GtkTreePath       *path,
+			  GtkTreeViewColumn *column)
+{
+  GSettings *settings;
+  gchar     *position;
+
+  settings = garu_utils_get_settings ();
+  position = gtk_tree_path_to_string (path);
+  g_settings_set_string (settings, "library-option-position", position);
+  g_print (g_settings_get_string (settings, "library-option-position"));
+  g_free (position);
 }
 
 GaruLibrary *
 garu_library_new (void)
 {
   return g_object_new (GARU_TYPE_LIBRARY,
-		       "orientation", GTK_ORIENTATION_VERTICAL,
-		       NULL);
+                       "orientation", GTK_ORIENTATION_VERTICAL,
+                       NULL);
 }

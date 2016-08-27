@@ -12,13 +12,13 @@
       <default>false</default>
     </key>
 
-    <!-- Volume -->
+    <!-- volume -->
     <key type="d" name="volume">
       <default>1</default>
       <summary>Volume for the player</summary>
     </key>
 
-    <!-- Equalizer -->
+    <!-- equalizer -->
     <key type="b" name="equalizer-enabled">
       <default>false</default>
       <summary>Equalizer enabled</summary>
@@ -59,7 +59,7 @@
       <default>0.0</default>
     </key>
 
-    <!-- Crossfade -->
+    <!-- crossfade -->
     <key type="b" name="crossfade-enabled">
       <default>true</default>
       <summary>Crossfade enabled</summary>
@@ -75,6 +75,11 @@
     <key type="b" name="crossfade-track-ends">
       <default>true</default>
       <summary>Crossfade before the track ends</summary>
+    </key>
+
+    <!-- library position -->
+    <key type="s" name="library-option-position">
+      <default>'0'</default>
     </key>
 
   </schema>
