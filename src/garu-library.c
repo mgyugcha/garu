@@ -111,16 +111,16 @@ garu_library_init_view_options (GaruLibrary *self)
   /* text */
   renderer = gtk_cell_renderer_text_new ();
   gtk_cell_renderer_set_padding (renderer,
-                                 GARU_CELL_PADDING,
-                                 GARU_CELL_PADDING);
+                                 GARU_CELL_RENDERER_PADDING,
+                                 GARU_CELL_RENDERER_PADDING);
   gtk_tree_view_column_pack_start (column, renderer, TRUE);
   gtk_tree_view_column_add_attribute (column, renderer,
                                       "text", COLUMN_STRING);
   /* icon */
   renderer = gtk_cell_renderer_pixbuf_new ();
   gtk_cell_renderer_set_padding (renderer,
-                                 GARU_CELL_PADDING,
-                                 GARU_CELL_PADDING);
+                                 GARU_CELL_RENDERER_PADDING,
+                                 GARU_CELL_RENDERER_PADDING);
   gtk_tree_view_column_pack_start (column, renderer, FALSE);
   gtk_tree_view_column_add_attribute (column, renderer,
                                       "icon-name", COLUMN_PIXBUF);

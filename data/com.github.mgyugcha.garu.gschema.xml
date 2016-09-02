@@ -82,5 +82,11 @@
       <default>'0'</default>
     </key>
 
+    <!-- folder browser -->
+    <key type="s" name="folder-browser-directory">
+      <default>'default'</default>
+      <summary>The last directory to which the user has accessed</summary>
+    </key>
+
   </schema>
 </schemalist>

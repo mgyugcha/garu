@@ -48,7 +48,7 @@ garu_utils_convert_seconds (gint length)
 
 
 gboolean
-garu_utils_is_audio (gchar *path)
+garu_utils_file_is_audio (gchar *path)
 {
   GFile       *file;
   GFileInfo   *info;
@@ -56,7 +56,7 @@ garu_utils_is_audio (gchar *path)
   gboolean     response = FALSE;
   file = g_file_new_for_path (path);
   info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-			    G_FILE_QUERY_INFO_NONE, NULL, NULL);
+                            G_FILE_QUERY_INFO_NONE, NULL, NULL);
   content_type = g_file_info_get_content_type (info);
   response = g_strrstr (content_type, "audio/") != NULL;
   g_object_unref (file);
@@ -65,14 +65,14 @@ garu_utils_is_audio (gchar *path)
 }
 
 gboolean
-garu_utils_is_hidden (gchar *path)
+garu_utils_file_is_hidden (gchar *path)
 {
   GFile     *file;
   GFileInfo *info;
   gboolean   response = FALSE;
   file = g_file_new_for_path (path);
   info = g_file_query_info (file, G_FILE_ATTRIBUTE_STANDARD_IS_HIDDEN,
-			    G_FILE_QUERY_INFO_NONE, NULL, NULL);
+                            G_FILE_QUERY_INFO_NONE, NULL, NULL);
   response = g_file_info_get_is_hidden (info);
   g_object_unref (file);
   g_object_unref (info);
@@ -97,6 +97,30 @@ garu_utils_text_bold (gchar *text)
   return g_markup_printf_escaped ("<b>%s</b>", text);
 }
 
+/**
+ * Create a new icon button with toogle propertie or relief.
+ */
+GtkWidget *
+garu_utils_new_icon_button (const gchar *icon_name,
+                            gboolean     toggle,
+                            gboolean     relief)
+{
+  GtkWidget *button, *image;
+
+  if (toggle)
+    button = gtk_toggle_button_new ();
+  else
+    button = gtk_button_new ();
+
+  if (!relief)
+    gtk_button_set_relief (GTK_BUTTON(button), GTK_RELIEF_NONE);
+
+  image =  gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_SMALL_TOOLBAR);
+  gtk_button_set_image (GTK_BUTTON (button), image);
+
+  return button;
+}
+
 GSettings *
 garu_utils_get_settings (void)
 {
@@ -115,4 +139,14 @@ garu_utils_get_player (void)
   app = GARU_APPLICATION (g_application_get_default ());
   player = garu_application_get_player (app);
   return player;
+}
+
+GtkWindow *
+garu_utils_get_active_window (void)
+{
+  GaruApplication *app;
+  GtkWindow       *window;
+  app = GARU_APPLICATION (g_application_get_default ());
+  window = gtk_application_get_active_window (GTK_APPLICATION (app));
+  return window;
 }

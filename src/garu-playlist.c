@@ -83,7 +83,6 @@ static void
 garu_playlist_finalize (GObject *object)
 {
   GaruPlaylist *self = GARU_PLAYLIST (object);
-  g_print ("Finaliza\n");
   G_OBJECT_CLASS (garu_playlist_parent_class)->finalize (object);
 }
 
@@ -107,16 +106,16 @@ static void
 garu_playlist_init_container (GaruPlaylist *self)
 {
   GtkWidget         *tree_view, *image, *scrolled, *level_bar;
-  GtkListStore      *store;
+  GtkListStore      *liststore;
   GtkTreeSelection  *selection;
   GtkTreeViewColumn *column;
   GtkCellRenderer   *renderer;
   GtkStyleContext   *context;
 
-  store = garu_playlist_init_list_store ();
-  tree_view = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
-  g_object_unref (store);
-  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(tree_view));
+  liststore = garu_playlist_init_list_store ();
+  tree_view = gtk_tree_view_new_with_model (GTK_TREE_MODEL (liststore));
+  g_object_unref (liststore);
+  selection = gtk_tree_view_get_selection (GTK_TREE_VIEW(tree_view));
   gtk_tree_selection_set_mode (selection, GTK_SELECTION_MULTIPLE);
   gtk_tree_view_set_headers_clickable (GTK_TREE_VIEW (tree_view), TRUE);
   gtk_tree_view_set_reorderable (GTK_TREE_VIEW (tree_view), TRUE);
@@ -193,7 +192,7 @@ garu_playlist_init_container (GaruPlaylist *self)
   gtk_tree_view_column_set_reorderable (column, TRUE);
   /* GENRE */
   renderer = gtk_cell_renderer_text_new ();
-  column = gtk_tree_view_column_new_with_attributes(_("Genere"),
+  column = gtk_tree_view_column_new_with_attributes(_("Genre"),
 						    renderer,
 						    "text",
 						    COLUMN_GENRE,

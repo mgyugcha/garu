@@ -53,6 +53,7 @@ struct _GaruPlayer
 
 G_DEFINE_TYPE (GaruPlayer, garu_player, G_TYPE_OBJECT);
 
+/* signals */
 enum {
   PLAYING,
   PAUSED,
@@ -60,7 +61,9 @@ enum {
   CROSSFADING,
   LAST_SIGNAL
 };
+static guint signals [LAST_SIGNAL];
 
+/* properties */
 enum {
   PROP_0,
   PROP_VOLUME,
@@ -71,9 +74,7 @@ enum {
   PROP_CROSSFADE_TRACK_ENDS,
   LAST_PROP
 };
-
 static GParamSpec *properties [LAST_PROP];
-static guint       signals [LAST_SIGNAL];
 
 static void     garu_player_load_settings              (GaruPlayer *self);
 static void     garu_player_do_crossfade               (GaruPlayer *self);

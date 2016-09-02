@@ -53,8 +53,6 @@ static GParamSpec *properties [LAST_PROP];
 static void       garu_headerbar_init_song_box            (GaruHeaderbar  *self);
 static void       garu_headerbar_init_control_buttons     (GaruHeaderbar  *self);
 static void       garu_headerbar_init_playback_buttons    (GaruHeaderbar  *self);
-static GtkWidget *garu_headerbar_new_button               (const gchar    *name,
-                                                           gboolean        toggle);
 static void       garu_headerbar_set_button_image         (GtkButton      *button,
                                                            const gchar    *name);
 static gboolean   garu_headerbar_sync_progress            (GaruHeaderbar  *self);
@@ -166,30 +164,26 @@ garu_headerbar_init_control_buttons (GaruHeaderbar *self)
 
   /* previous */
   prev_button =
-    garu_headerbar_new_button ("media-skip-backward-symbolic", FALSE);
-  gtk_button_set_relief (GTK_BUTTON(prev_button), GTK_RELIEF_NONE);
+    garu_utils_new_icon_button ("media-skip-backward-symbolic", FALSE, FALSE);
   g_signal_connect (prev_button, "clicked",
                     G_CALLBACK (garu_headerbar_prev_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), prev_button, FALSE, FALSE, 0);
   /* play */
   play_button =
-    garu_headerbar_new_button ("media-playback-start-symbolic", FALSE);
-  gtk_button_set_relief (GTK_BUTTON(play_button), GTK_RELIEF_NONE);
+    garu_utils_new_icon_button ("media-playback-start-symbolic", FALSE, FALSE);
   g_signal_connect (play_button, "clicked",
                     G_CALLBACK (garu_headerbar_play_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), play_button, FALSE, FALSE, 0);
   /* stop */
   stop_button =
-    garu_headerbar_new_button ("media-playback-stop-symbolic", FALSE);
-  gtk_button_set_relief (GTK_BUTTON(stop_button), GTK_RELIEF_NONE);
+    garu_utils_new_icon_button ("media-playback-stop-symbolic", FALSE, FALSE);
   gtk_widget_set_sensitive (stop_button, FALSE);
   g_signal_connect (stop_button, "clicked",
                     G_CALLBACK (garu_headerbar_stop_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), stop_button, FALSE, FALSE, 0);
   /* next */
   next_button =
-    garu_headerbar_new_button ("media-skip-forward-symbolic", FALSE);
-  gtk_button_set_relief (GTK_BUTTON(next_button), GTK_RELIEF_NONE);
+    garu_utils_new_icon_button ("media-skip-forward-symbolic", FALSE, FALSE);
   g_signal_connect (next_button, "clicked",
                     G_CALLBACK (garu_headerbar_next_button_clicked), self);
   gtk_box_pack_start (GTK_BOX (box), next_button, FALSE, FALSE, 0);
@@ -216,13 +210,14 @@ garu_headerbar_init_playback_buttons (GaruHeaderbar *self)
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
 
   /* shuffle */
-  button = garu_headerbar_new_button ("media-playlist-shuffle-symbolic", TRUE);
-  gtk_button_set_relief (GTK_BUTTON(button), GTK_RELIEF_NONE);
+  button = garu_utils_new_icon_button ("media-playlist-shuffle-symbolic",
+				       TRUE, FALSE);
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
   gtk_widget_show (button);
   /* repeat */
-  button = garu_headerbar_new_button ("media-playlist-repeat-symbolic", TRUE);
-  gtk_button_set_relief (GTK_BUTTON(button), GTK_RELIEF_NONE);
+  button = garu_utils_new_icon_button ("media-playlist-repeat-symbolic",
+				       TRUE, FALSE);
+  
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, FALSE, 0);
   gtk_widget_show (button);
   /* volume */
@@ -235,19 +230,6 @@ garu_headerbar_init_playback_buttons (GaruHeaderbar *self)
 
   gtk_header_bar_pack_end (GTK_HEADER_BAR (self), box);
   gtk_widget_show (box);
-}
-
-static GtkWidget *
-garu_headerbar_new_button (const gchar *name, gboolean toggle)
-{
-  GtkWidget *button, *image;
-  if (toggle)
-    button = gtk_toggle_button_new ();
-  else
-    button = gtk_button_new ();
-  image = gtk_image_new_from_icon_name (name, GTK_ICON_SIZE_SMALL_TOOLBAR);
-  gtk_button_set_image (GTK_BUTTON (button), image);
-  return button;
 }
 
 static void

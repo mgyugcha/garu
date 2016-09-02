@@ -24,10 +24,10 @@
 #include "garu-player.h"
 
 /* CONSTANTS */
-#define GARU_CELL_PADDING 4
+#define GARU_CELL_RENDERER_PADDING 4
 
 enum {
-  TARGET_REF_LIBRARY
+  TARGET_FILE_PATH
 };
 
 static const gchar *eq_bands[] =
@@ -70,13 +70,17 @@ eq_presets_values[G_N_ELEMENTS (eq_presets)][G_N_ELEMENTS (eq_bands)] =
   };
 
 
-gchar      *garu_utils_convert_seconds (gint     length);
-gboolean    garu_utils_is_audio        (gchar   *path);
-gboolean    garu_utils_is_hidden       (gchar   *path);
-void        garu_utils_free_string     (GString *string);
-gint        garu_utils_g_strcmp        (GString *a, GString *b);
-gchar      *garu_utils_text_bold       (gchar   *text);
-GSettings  *garu_utils_get_settings    (void);
-GaruPlayer *garu_utils_get_player      (void);
+gchar      *garu_utils_convert_seconds   (gint         length);
+gboolean    garu_utils_file_is_audio     (gchar       *path);
+gboolean    garu_utils_file_is_hidden    (gchar       *path);
+void        garu_utils_free_string       (GString     *string);
+gint        garu_utils_g_strcmp          (GString     *a, GString *b);
+gchar      *garu_utils_text_bold         (gchar       *text);
+GtkWidget  *garu_utils_new_icon_button   (const gchar *icon_name,
+                                          gboolean     toggle,
+                                          gboolean     relief);
+GSettings  *garu_utils_get_settings      (void);
+GaruPlayer *garu_utils_get_player        (void);
+GtkWindow  *garu_utils_get_active_window (void);
 
 #endif // __GARU_UTILS_H__

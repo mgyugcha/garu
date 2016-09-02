@@ -25,7 +25,7 @@ G_BEGIN_DECLS
 
 #define GARU_TYPE_FOLDER_BROWSER (garu_folder_browser_get_type())
 
-G_DECLARE_FINAL_TYPE (GaruFolderBrowser, garu_folder_browser, GARU, FOLDER_BROWSER, GtkScrolledWindow);
+G_DECLARE_FINAL_TYPE (GaruFolderBrowser, garu_folder_browser, GARU, FOLDER_BROWSER, GtkBox);
 
 struct _GaruFolderBrowserClass
 {
